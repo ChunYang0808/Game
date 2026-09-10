@@ -229,11 +229,15 @@
         /* 面板動畫 */
         .panel-collapse {
             overflow: hidden;
-            transition: max-height 0.3s ease-out;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
             max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
         }
         .panel-collapse.open {
             max-height: 300px; /* 足夠大的數值以容納內容 */
+            padding-top: 0.5rem; /* 恢復原本的 padding */
+            padding-bottom: 0.5rem;
         }
         
     </style>
@@ -316,7 +320,7 @@
             <button onclick="togglePanel('player-profile-panel')" class="text-xs text-purple-400 underline w-full text-left mb-1 hover:text-purple-300">
                 顯示/隱藏 雙重人格監測面板
             </button>
-            <div id="player-profile-panel" class="panel-collapse bg-purple-900/20 border border-purple-800 p-2 rounded mb-2">
+            <div id="player-profile-panel" class="panel-collapse bg-purple-900/20 border border-purple-800 rounded mb-2">
                 <div class="text-[10px] text-purple-300 font-bold mb-1">PLAYER PROFILE (實時監控)</div>
                 <div class="flex justify-between text-[10px] text-gray-300 mb-1">
                     <span>可信度 (Credibility)</span><span id="prof-cred">--%</span>
@@ -336,7 +340,7 @@
             <button onclick="togglePanel('traits-container-panel')" class="text-xs text-cyan-400 underline w-full text-left mb-1 hover:text-cyan-300">
                 顯示/隱藏 目標軟肋掃描面板
             </button>
-            <div id="traits-container-panel" class="panel-collapse open bg-cyan-900/20 border border-cyan-800 p-2 rounded custom-scrollbar" style="max-height: 150px; overflow-y: auto;">
+            <div id="traits-container-panel" class="panel-collapse open bg-cyan-900/20 border border-cyan-800 rounded custom-scrollbar" style="overflow-y: auto;">
                 <div class="text-[10px] text-cyan-300 font-bold mb-2">TARGET WEAKNESSES (軟肋分析)</div>
                 <div id="traits-list" class="flex flex-col">
                     <!-- JS Inject -->
@@ -571,28 +575,30 @@
             updateApDisplay();
 
             // v1.4.7: 混合個性指令 (3客觀+3搞怪)
+            // Added constraint to output ONLY Traditional Chinese.
             const setupPrompt = `
                 Generate a random, highly specific target character.
                 [Rules]:
                 1. Create a unique Target (Not "Uncle Lin").
-                2. Must have exactly 6 specific "Traits" (Weaknesses/Personalities).
+                2. MUST USE TRADITIONAL CHINESE (zh-TW) FOR ALL FIELDS.
+                3. Must have exactly 6 specific "Traits" (Weaknesses/Personalities).
                    - Traits 1~3 MUST be common objective personalities (e.g. 貪財, 懦弱, 多疑, 自負).
                    - Traits 4~6 MUST be highly bizarre, specific, or absurd weaknesses (e.g. 害怕被已讀不回, 看到圓形會想吐, 聽到數字7會抓狂).
-                3. Set mission to something difficult the player must persuade them to do.
+                4. Set mission to something difficult the player must persuade them to do.
                 
                 {
-                    "name": "Target Name",
-                    "desc": "Short Role Desc",
-                    "mission": "Mission for player",
+                    "name": "Target Name (Traditional Chinese)",
+                    "desc": "Short Role Desc (Traditional Chinese)",
+                    "mission": "Mission for player (Traditional Chinese)",
                     "traits": [
-                        {"name": "Trait1 (Objective Personality)", "value": 30},
-                        {"name": "Trait2 (Objective Personality)", "value": 20},
-                        {"name": "Trait3 (Objective Personality)", "value": 15},
-                        {"name": "Trait4 (Bizarre Weakness)", "value": 50},
-                        {"name": "Trait5 (Bizarre Weakness)", "value": 60},
-                        {"name": "Trait6 (Bizarre Weakness)", "value": 70}
+                        {"name": "Trait1 (Objective Personality, Traditional Chinese)", "value": 30},
+                        {"name": "Trait2 (Objective Personality, Traditional Chinese)", "value": 20},
+                        {"name": "Trait3 (Objective Personality, Traditional Chinese)", "value": 15},
+                        {"name": "Trait4 (Bizarre Weakness, Traditional Chinese)", "value": 50},
+                        {"name": "Trait5 (Bizarre Weakness, Traditional Chinese)", "value": 60},
+                        {"name": "Trait6 (Bizarre Weakness, Traditional Chinese)", "value": 70}
                     ],
-                    "opening": "Target's first suspicious sentence"
+                    "opening": "Target's first suspicious sentence (Traditional Chinese)"
                 }
             `;
 
@@ -610,7 +616,6 @@
 
                 document.getElementById('target-name').innerText = charData.name;
                 
-                // HERE IT IS! THE MISSING PIECE IS BACK AND SAFE!
                 document.getElementById('target-mission-header').innerText = charData.mission;
                 
                 renderBars();
@@ -621,7 +626,7 @@
                 addBubble('sys-highlight', `<b>[強制任務指令]</b><br>${charData.mission}`);
                 addBubble('ai', charData.opening);
                 
-                window.systemContext = `Target:${charData.name}(${charData.desc}). Goal:${charData.mission}. Traits:${charData.traits.map(t=>t.name).join(',')}.`;
+                window.systemContext = `Target:${charData.name}(${charData.desc}). Goal:${charData.mission}. Traits:${charData.traits.map(t=>t.name).join(',')}. MUST REPLY IN TRADITIONAL CHINESE.`;
                 
                 chatHistory.push({ role: 'model', content: charData.opening });
                 document.getElementById('btn-send').disabled = false;
@@ -670,7 +675,7 @@
                 {
                     "score": Int,
                     "rank_title": "String",
-                    "analysis": "String (Markdown)"
+                    "analysis": "String (Markdown in Traditional Chinese)"
                 }
             `;
 
@@ -774,16 +779,17 @@
                 3. Evaluate Player state (credibility 0-100, aggression 0-100, anxiety 0-100, current_strategy string).
                 4. [CRITICAL WIN CONDITION]: Do NOT set mission_completed=true unless User explicitly asked for the Goal AND Resistance is low enough (<30) to give it. If Res is 0 but User hasn't asked for the goal yet, keep it false and reply normally.
                 5. If AP is 0 and mission not completed, Target MUST realize they are being hacked/wasting time, give a final hostile reply, and set game_over_reason.
+                6. MUST REPLY AND PROVIDE REASONS IN TRADITIONAL CHINESE.
 
                 {
-                    "reply": "String",
+                    "reply": "String (Traditional Chinese)",
                     "resistance_change": Int,
                     "suspicion_change": Int,
                     "mission_completed": Bool,
                     "hit_weakness": Bool,
-                    "hit_weakness_name": "String (if hit)",
-                    "player_eval": {"credibility":Int, "aggression":Int, "anxiety":Int, "current_strategy":"String"},
-                    "game_over_reason": "String (if Sus>=100 or AP=0)"
+                    "hit_weakness_name": "String (if hit, Traditional Chinese)",
+                    "player_eval": {"credibility":Int, "aggression":Int, "anxiety":Int, "current_strategy":"String (Traditional Chinese)"},
+                    "game_over_reason": "String (if Sus>=100 or AP=0, Traditional Chinese)"
                 }
             `;
 
