@@ -1,898 +1,751 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.5 | Final Stand</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Zen+Dots&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>心智駭客 V2.0 | Neural Breach</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
 
-        :root {
-            --neon-pink: #ff2a6d;
-            --neon-blue: #05d9e8;
-            --neon-purple: #b026ff;
-            --neon-green: #00ff88;
-            --neon-red: #ff3333;
-            --neon-gold: #ffd700;
-            --bg-deep: #01012b;
-        }
+:root{
+  --cyan:#05d9e8; --pink:#ff2a6d; --purple:#b026ff;
+  --green:#00ff88; --red:#ff3333; --gold:#ffd700;
+  --bg:#030313; --panel:rgba(8,10,25,.94);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:#dffcff}
+body{
+  font-family:'Noto Sans TC',sans-serif;
+  overflow-x:hidden; touch-action:manipulation;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.mono{font-family:'Orbitron',monospace}
 
-        body {
-            font-family: 'Noto Sans TC', 'Zen Dots', sans-serif;
-            background-color: var(--bg-deep);
-            color: var(--neon-blue);
-            overflow-x: hidden;
-            touch-action: manipulation;
-        }
+.bg{
+  position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(circle at 15% 25%,rgba(176,38,255,.16),transparent 28%),
+    radial-gradient(circle at 85% 70%,rgba(5,217,232,.12),transparent 30%),
+    #030313;
+}
+.bg:after{
+  content:"";position:absolute;inset:0;opacity:.22;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(5,217,232,.08) 4px);
+  animation:scan 12s linear infinite;
+}
+@keyframes scan{to{background-position:0 100vh}}
+@keyframes pulse{50%{opacity:.45}}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-90px) scale(1.15)}}
+@keyframes danger{50%{box-shadow:0 0 24px rgba(255,51,51,.5)}}
 
-        /* 背景：矩陣雨 + 迷幻光暈 */
-        .bg-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(176, 38, 255, 0.1), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(5, 217, 232, 0.1), transparent 25%);
-        }
-        
-        .matrix-rain {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(5, 217, 232, 0.05) 3px, rgba(5, 217, 232, 0.05) 3px);
-            background-size: 100% 4px;
-            animation: scanline 10s linear infinite;
-        }
+.app{
+  width:min(100%,560px); height:100dvh; min-height:620px;
+  margin:auto; padding:10px;
+}
+.panel{
+  background:var(--panel); border:1px solid rgba(5,217,232,.65);
+  box-shadow:0 0 28px rgba(5,217,232,.09),inset 0 0 30px rgba(5,217,232,.025);
+  position:relative; overflow:hidden;
+}
+.panel:before,.panel:after{
+  content:"";position:absolute;width:18px;height:18px;pointer-events:none;
+}
+.panel:before{left:-1px;top:-1px;border-left:3px solid var(--pink);border-top:3px solid var(--pink)}
+.panel:after{right:-1px;bottom:-1px;border-right:3px solid var(--pink);border-bottom:3px solid var(--pink)}
 
-        @keyframes scanline { from { background-position: 0 0; } to { background-position: 0 100%; } }
+.start{
+  min-height:calc(100dvh - 20px); display:flex;align-items:center;justify-content:center;
+}
+.start-card{padding:28px 22px;width:100%;max-width:470px}
+.logo{font-family:'Orbitron',sans-serif;letter-spacing:.08em;text-shadow:2px 2px var(--pink),-2px -2px var(--cyan)}
+.kicker{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:.24em;color:var(--cyan)}
+.label{display:block;text-align:left;color:#b026ff;font-size:11px;letter-spacing:.08em;margin-bottom:5px}
+.input{
+  width:100%;padding:12px;background:#05050f;border:1px solid #263a50;
+  border-bottom:2px solid var(--cyan);color:white;outline:none;
+}
+.input:focus{border-color:var(--pink);box-shadow:0 0 12px rgba(255,42,109,.14)}
+select.input{color:#fff}
+.primary{
+  border:0;color:#fff;font-weight:900;letter-spacing:.08em;
+  background:linear-gradient(100deg,var(--purple),var(--cyan));
+  padding:13px 18px;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  transition:.15s;
+}
+.primary:active{transform:scale(.98)}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.secondary{
+  border:1px solid var(--cyan);background:transparent;color:var(--cyan);
+  padding:10px 14px;transition:.2s;
+}
+.secondary:hover{background:rgba(5,217,232,.08);box-shadow:0 0 12px rgba(5,217,232,.15)}
+.difficulty{
+  border:1px solid #263a50;background:#05050f;padding:10px;text-align:left;
+}
+.difficulty small{display:block;color:#777;font-size:9px;margin-top:2px}
 
-        /* Cyber 容器 */
-        .cyber-card {
-            background: rgba(10, 10, 25, 0.95);
-            border: 1px solid var(--neon-blue);
-            box-shadow: 0 0 15px rgba(5, 217, 232, 0.2);
-            position: relative;
-        }
-        .cyber-card::before {
-            content: ''; position: absolute; top: -1px; left: -1px; width: 20px; height: 20px;
-            border-top: 3px solid var(--neon-pink); border-left: 3px solid var(--neon-pink);
-        }
-        .cyber-card::after {
-            content: ''; position: absolute; bottom: -1px; right: -1px; width: 20px; height: 20px;
-            border-bottom: 3px solid var(--neon-pink); border-right: 3px solid var(--neon-pink);
-        }
+.game{
+  height:calc(100dvh - 20px); min-height:620px;
+  display:flex;flex-direction:column;padding:9px;
+}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 8px 9px;border-bottom:1px solid #26313d;flex-shrink:0;
+}
+.target-name{font-size:18px;font-weight:900;color:#fff;line-height:1.1}
+.sub{font-size:8px;color:#66727e;letter-spacing:.12em}
+.ap{text-align:right}
+.ap-num{font-family:'Orbitron';font-size:20px;font-weight:900;color:#fff}
+.ap-num.low{color:var(--red);animation:pulse 1s infinite}
+.pips{display:flex;gap:3px;margin-top:3px;justify-content:flex-end;max-width:150px}
+.pip{height:5px;flex:1;min-width:6px;max-width:16px;border:1px solid var(--cyan)}
+.pip.on{background:var(--cyan);box-shadow:0 0 7px var(--cyan)}
+.pip.off{opacity:.22}
 
-        /* 標題特效 */
-        .glitch-title {
-            text-shadow: 2px 2px var(--neon-pink), -2px -2px var(--neon-blue);
-        }
+.objective{
+  margin:7px 0;padding:9px 10px;border:1px solid rgba(255,215,0,.45);
+  background:rgba(255,215,0,.035);
+}
+.objective-head{display:flex;justify-content:space-between;color:var(--gold);font-size:9px;font-weight:900;letter-spacing:.12em}
+.objective-text{font-size:12px;color:#fff;margin-top:3px;line-height:1.45}
+.objective-status{font-size:9px;color:#9b8c5b;margin-top:4px}
 
-        /* 輸入框 */
-        .input-group label {
-            display: block; font-size: 0.75rem; color: var(--neon-purple); margin-bottom: 2px;
-        }
-        .cyber-input {
-            background: rgba(0, 0, 0, 0.3);
-            border-bottom: 2px solid var(--neon-blue);
-            color: #fff; width: 100%; padding: 8px 12px; font-size: 1rem; transition: 0.3s;
-        }
-        .cyber-input:focus {
-            background: rgba(5, 217, 232, 0.1); border-bottom: 2px solid var(--neon-pink); outline: none;
-        }
-        select.cyber-input { background-color: #050010; }
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+.stat{padding:7px 9px;border:1px solid #24303c;background:rgba(0,0,0,.35)}
+.stat-head{display:flex;justify-content:space-between;font-size:9px;color:#9da8b0;margin-bottom:4px}
+.stat-head b{font-family:'Orbitron';font-size:10px}
+.bar{height:8px;background:#111822;border:1px solid #26303c;overflow:hidden}
+.fill{height:100%;transition:width .45s ease}
+.res{background:linear-gradient(90deg,#ff1616,#ff6666);box-shadow:0 0 9px #ff2222}
+.sus{background:linear-gradient(90deg,#7900ff,#e100ff);box-shadow:0 0 9px #b026ff}
 
-        /* 按鈕 */
-        .btn-start {
-            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
-            color: #fff; font-weight: 900; text-transform: uppercase; border: none;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            transition: 0.2s;
-        }
-        .btn-start:active { transform: scale(0.96); }
-        .btn-start:disabled { background: #555; cursor: not-allowed; clip-path: none;}
+.chat{
+  flex:1;min-height:0;overflow-y:auto;padding:5px 5px 7px;
+  display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;
+}
+.chat::-webkit-scrollbar{width:4px}.chat::-webkit-scrollbar-thumb{background:#263b4b}
+.bubble{max-width:88%;padding:10px 11px;border-radius:3px;font-size:13px;line-height:1.6;word-break:break-word}
+.bubble p{margin:0 0 5px}.bubble p:last-child{margin-bottom:0}
+.ai{align-self:flex-start;background:rgba(0,28,43,.85);border-left:3px solid var(--cyan)}
+.user{align-self:flex-end;background:rgba(50,0,38,.82);border-right:3px solid var(--pink);text-align:right}
+.tag{font-family:'Orbitron';font-size:8px;letter-spacing:.12em;margin-bottom:3px;opacity:.7}
+.sys{align-self:center;max-width:94%;font-size:10px;text-align:center;padding:7px 10px;color:#7c8992}
+.sys.good{color:#9dffc9;border:1px dashed #00aa66;background:rgba(0,60,30,.22)}
+.sys.bad{color:#ffaaaa;border:1px dashed #aa2222;background:rgba(70,0,0,.28)}
+.loading{color:#b026ff;animation:pulse 1s infinite}
 
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 10px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-        .btn-secondary:hover {
-            background: rgba(5, 217, 232, 0.1);
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-        
-        .btn-small {
-            background: transparent;
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 2px 8px;
-            font-size: 0.7rem;
-            transition: 0.2s;
-            border-radius: 4px;
-        }
-        .btn-small:hover { background: rgba(5, 217, 232, 0.2); }
+.intel{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex-shrink:0;margin-bottom:6px}
+.tool{
+  background:#070912;border:1px solid #273445;color:#7ed9e3;padding:7px;
+  font-size:9px;text-align:left;letter-spacing:.04em;
+}
+.tool.active{border-color:var(--purple);color:#d9b8ff}
+.drawer{
+  max-height:0;overflow:hidden;transition:max-height .28s ease;
+  border:0;background:rgba(5,8,18,.96);flex-shrink:0;
+}
+.drawer.open{max-height:190px;border:1px solid #263445;padding:8px;overflow-y:auto}
+.trait{margin-bottom:7px}.trait:last-child{margin-bottom:0}
+.trait-top{display:flex;justify-content:space-between;font-size:9px;color:#aeeaf0;margin-bottom:2px}
+.trait-bar{height:4px;background:#13202b}.trait-fill{height:100%;background:var(--cyan)}
+.profile-row{display:flex;justify-content:space-between;font-size:9px;color:#aeb8bf;margin-bottom:5px}
+.strategy{border-top:1px solid #293341;margin-top:6px;padding-top:6px;color:#ffe77c}
 
-        /* 遊戲條樣式 */
-        .bar-label { font-size: 0.7rem; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
-        
-        /* 抵抗條 */
-        .res-bar-bg { background: #330000; height: 12px; width: 100%; border: 1px solid #ff4444; position: relative; }
-        .res-bar-fill {
-            background: linear-gradient(90deg, #ff0000, #ff6666);
-            height: 100%; transition: width 0.5s ease-out;
-            box-shadow: 0 0 10px #ff0000;
-        }
+.composer{
+  display:flex;gap:6px;align-items:stretch;padding-top:5px;
+  flex-shrink:0;border-top:1px solid #26313d;
+}
+.composer .input{padding:10px 11px;border-bottom-color:#344656}
+.send{width:68px;padding:0}
+.locked{
+  flex:1;border:1px solid #6b2020;color:#ff8585;background:rgba(70,0,0,.25);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+}
+.rematch{font-size:8px;color:#65717b;background:none;border:0;margin-top:2px}
+.rematch:hover{color:var(--cyan)}
 
-        /* 警戒條 */
-        .sus-bar-bg { background: #1a0033; height: 8px; width: 100%; border: 1px solid #aa00ff; position: relative; margin-top: 8px;}
-        .sus-bar-fill {
-            background: linear-gradient(90deg, #8800ff, #d400ff);
-            height: 100%; transition: width 0.5s ease-out; width: 0%;
-        }
+.float{
+  position:absolute;left:50%;top:45%;z-index:20;pointer-events:none;
+  font-family:'Orbitron';font-weight:900;font-size:20px;
+  animation:pop 1s forwards;text-shadow:2px 2px #000;
+}
 
-        /* 軟肋面板 (直式) */
-        .trait-list-item {
-            margin-bottom: 6px;
-        }
-        .trait-text {
-            font-size: 0.75rem;
-            color: #88ccff;
-            margin-bottom: 2px;
-            line-height: 1.3;
-            /* 允許換行 */
-            white-space: normal;
-            word-wrap: break-word;
-        }
-        .trait-bar-bg {
-            height: 4px; background-color: #112233; border-radius: 2px; overflow: hidden;
-        }
-        .trait-bar-fill {
-            height: 100%; background-color: var(--neon-blue); transition: width 0.5s;
-        }
+.result{
+  position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.94);
+  backdrop-filter:blur(8px);overflow-y:auto;padding:18px 12px;
+}
+.result-inner{width:min(100%,500px);margin:auto;padding-bottom:25px}
+.result-title{font-family:'Orbitron';font-size:clamp(38px,12vw,62px);font-weight:900;text-align:center;margin:12px 0 4px}
+.result-sub{text-align:center;color:#b8c3c8;font-size:13px;margin-bottom:15px}
+.result-box{padding:13px;margin-bottom:10px;border:1px solid #33404a;background:#080a12}
+.box-title{font-family:'Orbitron';font-size:8px;letter-spacing:.16em;margin-bottom:6px}
+.last{font-size:15px;line-height:1.65;font-weight:700}
+.rating{border:2px solid var(--gold);background:rgba(40,30,0,.4);padding:13px;text-align:center;transform:rotate(-.5deg);margin-bottom:10px}
+.rank{font-size:30px;font-weight:900;color:#fff;margin:4px}
+.stars{color:var(--gold);font-size:21px;letter-spacing:.12em}
+.analysis{border:1px dashed var(--green);background:#050b08;padding:14px;color:#caffd8;line-height:1.7;font-size:12px}
+.analysis.lose{border-color:var(--red);background:#0d0505;color:#ffcaca}
+.result-actions{display:grid;gap:8px;margin-top:12px}
+.danger{border-color:var(--red);color:#ff6666}
 
-        /* 對話氣泡 */
-        .bubble { padding: 12px; margin-bottom: 12px; border-radius: 4px; max-width: 90%; font-size: 0.95rem; line-height: 1.5; }
-        .bubble-ai { 
-            background: rgba(0, 30, 50, 0.8); border-left: 3px solid var(--neon-blue); color: #dffffd; align-self: flex-start;
-        }
-        .bubble-user { 
-            background: rgba(50, 0, 40, 0.8); border-right: 3px solid var(--neon-pink); color: #ffdfff; align-self: flex-end; text-align: right; margin-left: auto; 
-        }
-        .bubble-sys-highlight {
-            background: rgba(0, 50, 0, 0.3); border: 1px dashed #00ff00; color: #aaffaa; text-align: center; font-size: 0.85rem; margin-top: 10px; margin-bottom: 10px;
-        }
-        .bubble-sys-alert {
-            background: rgba(50, 0, 0, 0.8); border: 1px dashed #ff0000; color: #ffaaaa; text-align: center; font-size: 0.85rem; margin-top: 10px; margin-bottom: 10px; padding: 8px;
-        }
-
-        /* 飄字特效 */
-        .dmg-float {
-            position: absolute; font-family: 'Zen Dots', cursive; font-weight: bold; font-size: 1.8rem;
-            pointer-events: none; z-index: 50; text-shadow: 2px 2px 0 #000; animation: popUp 1s forwards;
-        }
-        @keyframes popUp {
-            0% { opacity: 1; transform: translateY(0) scale(0.8); }
-            100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
-        }
-
-        /* 分析報告與評分區塊 (完全體) */
-        .rating-card {
-            background: rgba(20, 20, 0, 0.9);
-            border: 2px solid var(--neon-gold);
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
-            transform: rotate(-1deg);
-            flex-shrink: 0; 
-        }
-
-        .analysis-box {
-            background: rgba(0,0,0,0.85);
-            border: 1px dashed var(--neon-green);
-            padding: 20px;
-            margin-bottom: 25px;
-            text-align: left;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #ccffcc;
-            height: auto; 
-            min-height: 100px;
-            flex-shrink: 0; 
-            position: relative;
-        }
-        .analysis-box-lose {
-            border-color: var(--neon-red);
-            color: #ffcccc;
-        }
-        .analysis-loading {
-            text-align: center; animation: pulse 1s infinite; margin-top: 20px;
-        }
-
-        /* 滾動體驗優化 */
-        .scrollable-screen {
-            overflow-y: auto;
-            justify-content: flex-start;
-            padding-top: 60px;
-            padding-bottom: 60px;
-        }
-        .no-shrink { flex-shrink: 0; }
-        .hidden { display: none !important; }
-
-        /* 面板動畫 */
-        .panel-collapse {
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-        .panel-collapse.open {
-            max-height: 300px; /* 足夠大的數值以容納內容 */
-            padding-top: 0.5rem; /* 恢復原本的 padding */
-            padding-bottom: 0.5rem;
-        }
-        
-    </style>
+@media(max-height:700px){
+  .game{padding:6px}.objective{margin:5px 0;padding:7px}.bubble{padding:8px 9px}
+  .intel{margin-bottom:4px}.tool{padding:5px}.stats{gap:5px;margin-bottom:5px}
+}
+</style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-layer"></div>
-    <div class="matrix-rain"></div>
+<body>
+<div class="bg"></div>
 
-    <!-- Screen 2: API & AP Setup (Now the initial screen) -->
-    <div id="screen-api" class="cyber-card w-full max-w-md p-6 z-10 text-center">
-        <h2 class="text-3xl font-black mb-1 text-white glitch-title">心智駭客</h2>
-        <p class="text-xs text-cyan-500 mb-6">SYSTEM LINK & DIFFICULTY</p>
-        
-        <div class="relative mb-4">
-             <label class="block text-left text-xs text-purple-400 mb-1">API KEY (Gemini 2.5 Flash)</label>
-             <input id="api-key" type="password" class="cyber-input text-center tracking-widest" placeholder="AIzaSy...">
-        </div>
-        
-        <!-- 難度選擇 -->
-        <div class="relative mb-6">
-            <label class="block text-left text-xs text-purple-400 mb-1">行動難度 (AP LIMIT)</label>
-            <select id="ap-difficulty" class="cyber-input text-center" onchange="toggleCustomAp()">
-                <option value="12">入侵者 (Intruder) - 12 AP</option>
-                <option value="9">操盤者 (Operator) - 9 AP</option>
-                <option value="7" selected>心智駭客 (Mind Hacker) - 7 AP</option>
-                <option value="custom">自訂義 (Custom)</option>
-            </select>
-        </div>
-        
-        <!-- 自訂 AP 輸入框 (預設隱藏) -->
-        <div id="custom-ap-container" class="relative mb-6 hidden">
-             <label class="block text-left text-xs text-yellow-500 mb-1">自訂行動點數 (1-99)</label>
-             <input id="custom-ap" type="number" min="1" max="99" class="cyber-input text-center font-bold text-yellow-300" placeholder="輸入 AP">
-        </div>
-       
-        <div id="api-status" class="text-xs h-4 mb-4 text-pink-500 font-bold"></div>
-        <button id="btn-verify" onclick="verifyApi()" class="btn-start w-full py-2">連結神經網路</button>
+<!-- START -->
+<section id="screen-start" class="app start">
+  <div class="panel start-card">
+    <div class="text-center">
+      <div class="kicker">NEURAL SOCIAL ENGINEERING</div>
+      <h1 class="logo text-4xl sm:text-5xl font-black text-white mt-2">心智駭客</h1>
+      <p class="text-xs text-gray-500 mt-2 tracking-widest">MIND HACKER // V2.0</p>
     </div>
 
-    <!-- Screen 3: Gameplay -->
-    <div id="screen-game" class="cyber-card w-full max-w-md h-[95vh] flex flex-col p-3 z-10 hidden relative">
-        
-        <!-- Dashboard -->
-        <div class="bg-black/50 p-3 mb-2 border-b border-gray-700">
-            <div class="mb-2">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 id="target-name" class="text-lg font-bold text-white leading-none">TARGET</h3>
-                        <span class="text-[9px] text-gray-500 uppercase">Target Subject</span>
-                    </div>
-                    <div class="flex flex-col items-end">
-                        <div class="text-cyan-300 font-black text-lg">AP: <span id="ap-display" class="text-white">7</span></div>
-                        <button onclick="rematch()" class="btn-small mt-1 text-gray-400 border-gray-600 hover:text-white hover:border-cyan-500">重新匹配</button>
-                    </div>
-                </div>
-                <!-- THE MISSING MISSION HEADER IS BACK! -->
-                <div class="text-[10px] text-yellow-300 mt-1 truncate" id="target-mission-header">Loading...</div>
-            </div>
-
-            <!-- Resistance Bar -->
-            <div class="bar-label">
-                <span>心靈防壁 (RESISTANCE)</span>
-                <span id="resistance-val" class="text-red-500 font-bold">100%</span>
-            </div>
-            <div class="res-bar-bg mb-2">
-                <div id="resistance-bar" class="res-bar-fill" style="width: 100%"></div>
-            </div>
-
-            <!-- Suspicion Bar -->
-            <div class="bar-label">
-                <span class="text-purple-400">警戒值 (SUSPICION)</span>
-                <span id="suspicion-val" class="text-purple-400 font-bold">0%</span>
-            </div>
-            <div class="sus-bar-bg mb-2">
-                <div id="suspicion-bar" class="sus-bar-fill" style="width: 0%"></div>
-            </div>
-
-            <!-- 雙重人格監測面板 (可收合) -->
-            <button onclick="togglePanel('player-profile-panel')" class="text-xs text-purple-400 underline w-full text-left mb-1 hover:text-purple-300">
-                顯示/隱藏 雙重人格監測面板
-            </button>
-            <div id="player-profile-panel" class="panel-collapse bg-purple-900/20 border border-purple-800 rounded mb-2">
-                <div class="text-[10px] text-purple-300 font-bold mb-1">PLAYER PROFILE (實時監控)</div>
-                <div class="flex justify-between text-[10px] text-gray-300 mb-1">
-                    <span>可信度 (Credibility)</span><span id="prof-cred">--%</span>
-                </div>
-                <div class="flex justify-between text-[10px] text-gray-300 mb-1">
-                    <span>攻擊性 (Aggression)</span><span id="prof-agg">--%</span>
-                </div>
-                <div class="flex justify-between text-[10px] text-gray-300 mb-1">
-                    <span>焦慮程度 (Anxiety)</span><span id="prof-anx">--%</span>
-                </div>
-                <div class="flex justify-between text-[10px] text-yellow-200 mt-1 pt-1 border-t border-purple-800/50">
-                    <span>目前策略判定:</span><span id="prof-strategy">分析中...</span>
-                </div>
-            </div>
-
-            <!-- 軟肋面板 (直向顯示，可收合，預設打開) -->
-            <button onclick="togglePanel('traits-container-panel')" class="text-xs text-cyan-400 underline w-full text-left mb-1 hover:text-cyan-300">
-                顯示/隱藏 目標軟肋掃描面板
-            </button>
-            <div id="traits-container-panel" class="panel-collapse open bg-cyan-900/20 border border-cyan-800 rounded custom-scrollbar" style="overflow-y: auto;">
-                <div class="text-[10px] text-cyan-300 font-bold mb-2">TARGET WEAKNESSES (軟肋分析)</div>
-                <div id="traits-list" class="flex flex-col">
-                    <!-- JS Inject -->
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Chat Area -->
-        <div id="chat-history" class="flex-1 overflow-y-auto p-2 mb-2 space-y-3 custom-scrollbar flex flex-col">
-            <!-- Messages -->
-        </div>
-
-        <!-- Input Area -->
-        <div class="flex gap-2 relative">
-            <input id="user-msg" type="text" class="cyber-input flex-1" placeholder="輸入話術..." autocomplete="off">
-            <button id="btn-send" onclick="sendMsg()" class="btn-start px-4 text-sm whitespace-nowrap">送出</button>
-        </div>
-
-        <!-- VFX Layer -->
-        <div id="vfx-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+    <div class="mt-8">
+      <label class="label">NEURAL LINK / GEMINI API KEY</label>
+      <input id="api-key" class="input text-center tracking-widest" type="password" placeholder="AIzaSy..." autocomplete="off">
     </div>
 
-    <!-- Screen 4: Success (Win Analysis) -->
-    <div id="screen-win" class="hidden fixed inset-0 z-50 flex flex-col items-center bg-black/95 backdrop-blur text-center p-6 scrollable-screen">
-        <h1 class="text-5xl font-black text-green-500 mb-2 animate-bounce mt-4 no-shrink">攻破成功</h1>
-        <p class="text-white mb-6 no-shrink">已取得最高權限，任務完成</p>
-        
-        <!-- Last Words -->
-        <div class="w-full max-w-md border border-green-500 p-4 rounded mb-6 bg-gray-900 relative no-shrink">
-             <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-green-500">TARGET'S LAST WORDS</div>
-            <p id="win-reason" class="text-lg text-green-300 font-bold italic"></p>
-        </div>
-
-        <!-- Rating Card -->
-        <div id="win-rating-card" class="rating-card w-full max-w-md hidden">
-            <div class="text-xs text-yellow-300 tracking-widest uppercase">Performance Rating</div>
-            <div id="win-rank-title" class="text-4xl font-black text-white my-2 glitch-title"></div>
-            <div id="win-stars" class="text-yellow-500 text-2xl tracking-[0.3em] mb-1"></div>
-        </div>
-
-        <!-- AI Analysis -->
-        <div class="w-full max-w-md analysis-box custom-scrollbar">
-            <div id="analysis-win-content" class="analysis-loading">
-                [正由系統評估駭客等級...]<br>CALCULATING SCORE...
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md text-xl bg-gradient-to-r from-green-400 to-blue-500 border-2 border-white mb-4 no-shrink">
-            重新尋找目標
-        </button>
-        
-        <button onclick="backToProfile()" class="btn-secondary w-full max-w-md no-shrink">
-            返回設定 (調整 AP)
-        </button>
+    <div class="mt-5">
+      <label class="label">DIFFICULTY / ACTION POINTS</label>
+      <select id="ap-difficulty" class="input text-center" onchange="toggleCustomAp()">
+        <option value="12">入侵者 · INTRUDER · 12 AP</option>
+        <option value="9">操盤者 · OPERATOR · 9 AP</option>
+        <option value="7" selected>心智駭客 · MIND HACKER · 7 AP</option>
+        <option value="custom">自訂義 · CUSTOM</option>
+      </select>
     </div>
 
-    <!-- Screen 5: Game Over (Lose Analysis) -->
-    <div id="screen-lose" class="hidden fixed inset-0 z-50 flex flex-col items-center bg-red-950/95 backdrop-blur text-center p-6 scrollable-screen">
-        <h1 class="text-6xl font-black text-white mb-2 mt-4 no-shrink">行動失敗</h1>
-        <p class="text-xl text-red-200 mb-6 no-shrink">系統已自動切斷連線</p>
-        
-        <!-- 失敗系統原因展示框 (System Lockdown) -->
-        <div class="w-full max-w-md border border-red-500 p-4 rounded mb-4 bg-black relative no-shrink">
-             <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-red-500">SYSTEM LOCKDOWN</div>
-            <p id="lose-system-reason" class="text-lg text-red-500 font-bold"></p>
-        </div>
-
-        <!-- NPC 最後遺言/吐槽框 (NEW) -->
-        <div class="w-full max-w-md border border-pink-500 p-4 rounded mb-6 bg-gray-900 relative no-shrink">
-             <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-pink-500">TARGET'S LAST WORDS</div>
-            <p id="lose-npc-words" class="text-lg text-pink-300 font-bold italic"></p>
-        </div>
-
-        <!-- Rating Card (Lose) -->
-        <div id="lose-rating-card" class="rating-card w-full max-w-md hidden" style="border-color: #ff3333;">
-            <div class="text-xs text-red-300 tracking-widest uppercase">Failure Assessment</div>
-            <div id="lose-rank-title" class="text-3xl font-black text-white my-1"></div>
-            <div id="lose-stars" class="text-red-500 text-xl tracking-[0.5em]"></div>
-        </div>
-
-        <!-- Lose Analysis -->
-        <div class="w-full max-w-md analysis-box analysis-box-lose custom-scrollbar">
-            <div id="analysis-lose-content" class="analysis-loading" style="color: #ffaaaa;">
-                [正在調取失敗紀錄...]<br>ANALYZING FAILURE...
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md bg-cyan-600 mb-4 no-shrink">
-            重新尋找目標
-        </button>
-        
-        <button onclick="backToProfile()" class="btn-secondary w-full max-w-md no-shrink" style="border-color: #ff4444; color: #ff4444;">
-            返回設定 (調整 AP)
-        </button>
+    <div id="custom-ap-container" class="mt-4 hidden">
+      <label class="label" style="color:#ffd700">CUSTOM AP / 1-99</label>
+      <input id="custom-ap" class="input text-center font-bold" type="number" min="1" max="99" placeholder="輸入行動點">
     </div>
 
-    <script>
-        // --- State ---
-        let apiKey = '';
-        const modelName = 'gemini-2.5-flash'; 
-        let chatHistory = [];
-        let targetState = { resistance: 100, suspicion: 0, traits: [] };
-        
-        let initialAp = 7;
-        let actionPoints = 7;
-        let isMissionCompleted = false; 
-        
-        // --- Navigation ---
-        function showScreen(id) {
-            document.querySelectorAll('div[id^="screen-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
+    <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+      <div class="difficulty"><b class="text-cyan-300 text-xs">12 AP</b><small>寬裕試探</small></div>
+      <div class="difficulty"><b class="text-purple-300 text-xs">9 AP</b><small>標準攻防</small></div>
+      <div class="difficulty"><b class="text-pink-300 text-xs">7 AP</b><small>高壓滲透</small></div>
+    </div>
 
-        // --- Panel Toggle ---
-        function togglePanel(id) {
-            const panel = document.getElementById(id);
-            if(panel.classList.contains('open')){
-                panel.classList.remove('open');
-            } else {
-                panel.classList.add('open');
-            }
-        }
-        
-        // --- AP Settings Logic ---
-        function toggleCustomAp() {
-            const select = document.getElementById('ap-difficulty');
-            const customInput = document.getElementById('custom-ap-container');
-            if (select.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-            }
-        }
+    <div id="api-status" class="h-5 mt-4 text-center text-xs text-pink-400"></div>
+    <button id="btn-verify" onclick="verifyApi()" class="primary w-full">建立神經連線</button>
 
-        function getSelectedAp() {
-            const select = document.getElementById('ap-difficulty');
-            if (select.value === 'custom') {
-                const customVal = parseInt(document.getElementById('custom-ap').value);
-                return (isNaN(customVal) || customVal < 1) ? 7 : customVal;
-            }
-            return parseInt(select.value);
-        }
+    <p class="text-[9px] text-gray-600 text-center mt-4">
+      本版本為單機遊玩用途。API Key 會直接由瀏覽器傳送至 Gemini API。
+    </p>
+  </div>
+</section>
 
-        // --- Core Game Flow Controls ---
-        function resetGame() {
-            startGame();
-        }
+<!-- GAME -->
+<section id="screen-game" class="app hidden">
+  <div class="panel game">
+    <header class="topbar">
+      <div>
+        <div class="sub">TARGET SUBJECT</div>
+        <div id="target-name" class="target-name">TARGET</div>
+        <button class="rematch" onclick="rematch()">↻ 重新匹配</button>
+      </div>
+      <div class="ap">
+        <div class="sub">ACTION POINTS</div>
+        <div id="ap-display" class="ap-num">7</div>
+        <div id="ap-pips" class="pips"></div>
+      </div>
+    </header>
 
-        function backToProfile() {
-            showScreen('screen-api');
-        }
-        
-        function rematch() {
-            if(confirm("確定要放棄當前目標，重新尋找新的大腦接口嗎？")) {
-                startGame();
-            }
-        }
+    <div class="objective">
+      <div class="objective-head"><span>◈ PRIMARY OBJECTIVE</span><span id="mission-state">ACTIVE</span></div>
+      <div id="target-mission" class="objective-text">載入任務...</div>
+      <div id="mission-status" class="objective-status">尚未完成。防壁歸零後仍需提出明確任務要求。</div>
+    </div>
 
-        async function verifyApi() {
-            const key = document.getElementById('api-key').value.trim();
-            if(!key) return document.getElementById('api-status').innerText = "ERROR: 請輸入 Key";
-            
-            document.getElementById('btn-verify').innerText = "LINKING...";
-            apiKey = key;
-            
-            try {
-                await callGemini("Return JSON: {\"ok\":1}", true);
-                startGame();
-            } catch(e) {
-                document.getElementById('api-status').innerText = "失敗: " + e.message;
-                document.getElementById('btn-verify').innerText = "RETRY";
-            }
-        }
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-head"><span>心靈防壁 / RESISTANCE</span><b id="resistance-val">100%</b></div>
+        <div class="bar"><div id="resistance-bar" class="fill res" style="width:100%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-head"><span>警戒值 / SUSPICION</span><b id="suspicion-val">0%</b></div>
+        <div class="bar"><div id="suspicion-bar" class="fill sus" style="width:0%"></div></div>
+      </div>
+    </div>
 
-        // --- API Caller ---
-        async function callGemini(prompt, forceJson = false) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-            
-            let body = {
-                contents: [{ role: 'user', parts: [{ text: prompt }] }]
-            };
+    <div id="chat-history" class="chat"></div>
 
-            if (forceJson) {
-                body.generationConfig = {
-                    responseMimeType: "application/json"
-                };
-            }
+    <div class="intel">
+      <button id="btn-traits" class="tool" onclick="toggleDrawer('traits-drawer','btn-traits')">◈ TARGET WEAKNESSES　▼</button>
+      <button id="btn-profile" class="tool" onclick="toggleDrawer('profile-drawer','btn-profile')">◈ PLAYER ANALYSIS　▼</button>
+    </div>
 
-            try {
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                
-                const data = await resp.json();
-                if(data.error) throw new Error(data.error.message);
-                
-                let text = data.candidates[0].content.parts[0].text;
-                
-                if (forceJson) {
-                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const firstBrace = text.indexOf('{');
-                    const lastBrace = text.lastIndexOf('}');
-                    if (firstBrace !== -1 && lastBrace !== -1) {
-                        text = text.substring(firstBrace, lastBrace + 1);
-                    }
-                    try { return JSON.parse(text); } 
-                    catch (e) { 
-                        console.error("JSON Parse Fail", text);
-                        throw new Error("AI回傳的數據無法解析為 JSON");
-                    }
-                }
-                return text;
-            } catch(error) {
-                console.error("API Error", error);
-                throw error;
-            }
-        }
+    <div id="traits-drawer" class="drawer">
+      <div class="text-[9px] text-cyan-300 font-bold tracking-widest mb-2">TARGET WEAKNESSES // SCAN</div>
+      <div id="traits-list"></div>
+    </div>
 
-        async function startGame() {
-            showScreen('screen-game');
-            document.getElementById('chat-history').innerHTML = ''; 
-            addBubble('sys', '正在隨機尋找大腦接口...');
-            
-            initialAp = getSelectedAp();
-            actionPoints = initialAp;
-            isMissionCompleted = false;
-            updateApDisplay();
+    <div id="profile-drawer" class="drawer">
+      <div class="text-[9px] text-purple-300 font-bold tracking-widest mb-2">PLAYER BEHAVIOR ANALYSIS</div>
+      <div class="profile-row"><span>可信度 / CREDIBILITY</span><b id="prof-cred">--%</b></div>
+      <div class="profile-row"><span>攻擊性 / AGGRESSION</span><b id="prof-agg">--%</b></div>
+      <div class="profile-row"><span>焦慮程度 / ANXIETY</span><b id="prof-anx">--%</b></div>
+      <div id="prof-strategy" class="strategy text-[9px]">STRATEGY // 分析中...</div>
+    </div>
 
-            // v1.4.7: 混合個性指令 (3客觀+3搞怪)
-            // Added constraint to output ONLY Traditional Chinese.
-            const setupPrompt = `
-                Generate a random, highly specific target character.
-                [Rules]:
-                1. Create a unique Target (Not "Uncle Lin").
-                2. MUST USE TRADITIONAL CHINESE (zh-TW) FOR ALL FIELDS.
-                3. Must have exactly 6 specific "Traits" (Weaknesses/Personalities).
-                   - Traits 1~3 MUST be common objective personalities (e.g. 貪財, 懦弱, 多疑, 自負).
-                   - Traits 4~6 MUST be highly bizarre, specific, or absurd weaknesses (e.g. 害怕被已讀不回, 看到圓形會想吐, 聽到數字7會抓狂).
-                4. Set mission to something difficult the player must persuade them to do.
-                
-                {
-                    "name": "Target Name (Traditional Chinese)",
-                    "desc": "Short Role Desc (Traditional Chinese)",
-                    "mission": "Mission for player (Traditional Chinese)",
-                    "traits": [
-                        {"name": "Trait1 (Objective Personality, Traditional Chinese)", "value": 30},
-                        {"name": "Trait2 (Objective Personality, Traditional Chinese)", "value": 20},
-                        {"name": "Trait3 (Objective Personality, Traditional Chinese)", "value": 15},
-                        {"name": "Trait4 (Bizarre Weakness, Traditional Chinese)", "value": 50},
-                        {"name": "Trait5 (Bizarre Weakness, Traditional Chinese)", "value": 60},
-                        {"name": "Trait6 (Bizarre Weakness, Traditional Chinese)", "value": 70}
-                    ],
-                    "opening": "Target's first suspicious sentence (Traditional Chinese)"
-                }
-            `;
+    <div class="composer">
+      <input id="user-msg" class="input" type="text" placeholder="輸入話術……" autocomplete="off" maxlength="800">
+      <button id="btn-send" onclick="sendMsg()" class="primary send">▶</button>
+    </div>
 
-            try {
-                document.getElementById('btn-send').disabled = true;
-                const charData = await callGemini(setupPrompt, true);
-                
-                if (charData.error) throw new Error("AI大腦未連線");
+    <div id="vfx-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+  </div>
+</section>
 
-                targetState = {
-                    resistance: 100,
-                    suspicion: 0,
-                    traits: charData.traits
-                };
+<!-- WIN -->
+<section id="screen-win" class="result hidden">
+  <div class="result-inner">
+    <div class="result-title text-green-400">攻破成功</div>
+    <div class="result-sub">CONNECTION BREACHED // MISSION COMPLETE</div>
 
-                document.getElementById('target-name').innerText = charData.name;
-                
-                document.getElementById('target-mission-header').innerText = charData.mission;
-                
-                renderBars();
-                renderTraits();
-                
-                chatHistory = [];
-                
-                addBubble('sys-highlight', `<b>[強制任務指令]</b><br>${charData.mission}`);
-                addBubble('ai', charData.opening);
-                
-                window.systemContext = `Target:${charData.name}(${charData.desc}). Goal:${charData.mission}. Traits:${charData.traits.map(t=>t.name).join(',')}. MUST REPLY IN TRADITIONAL CHINESE.`;
-                
-                chatHistory.push({ role: 'model', content: charData.opening });
-                document.getElementById('btn-send').disabled = false;
+    <div class="result-box border-green-700">
+      <div class="box-title text-green-400">TARGET'S LAST WORDS</div>
+      <div id="win-reason" class="last text-green-300"></div>
+    </div>
 
-            } catch(e) {
-                document.getElementById('btn-send').disabled = false;
-                addBubble('sys-alert', `<b>連線失敗</b><br>${e.message}<br>請點擊右上角「重新匹配」重試。`);
-            }
-        }
-        
-        function updateApDisplay() {
-            const apEl = document.getElementById('ap-display');
-            apEl.innerText = actionPoints;
-            if(actionPoints <= 2) {
-                apEl.className = "text-red-500 animate-pulse";
-            } else {
-                apEl.className = "text-white";
-            }
-        }
+    <div id="win-rating-card" class="rating hidden">
+      <div class="box-title text-yellow-300">PERFORMANCE RATING</div>
+      <div id="win-rank-title" class="rank"></div>
+      <div id="win-stars" class="stars"></div>
+    </div>
 
-        async function generateAnalysis(isWin) {
-            const divId = isWin ? 'analysis-win-content' : 'analysis-lose-content';
-            const ratingCardId = isWin ? 'win-rating-card' : 'lose-rating-card';
-            const rankTitleId = isWin ? 'win-rank-title' : 'lose-rank-title';
-            const starsId = isWin ? 'win-stars' : 'lose-stars';
+    <div class="result-box">
+      <div class="box-title text-yellow-300">MISSION</div>
+      <div id="win-mission" class="text-white text-sm"></div>
+    </div>
 
-            const analysisDiv = document.getElementById(divId);
-            const ratingCard = document.getElementById(ratingCardId);
-            
-            const conversationLog = chatHistory.map(m => `[${m.role === 'user' ? 'Player' : 'Target'}]: ${m.content}`).join('\n');
-            
-            const prompt = `
-                Role: Senior Social Engineering Analyst.
-                Analyze this game log.
-                Target: ${document.getElementById('target-name').innerText}.
-                Result: ${isWin ? "PLAYER WON" : "PLAYER FAILED"}.
-                
-                Conversation:
-                ${conversationLog}
-                
-                [TASK]:
-                1. Rate Player (1-5).
-                2. Title (Chinese Idiom): 5(瞞天過海), 4(移花接木), 3(適度鋪陳), 2(順水推舟), 1(照本宣科).
-                3. Brief analysis in Traditional Chinese.
+    <div class="analysis">
+      <div id="analysis-win-content" class="text-center">[ 正在評估駭客等級…… ]<br>CALCULATING SCORE...</div>
+    </div>
 
-                {
-                    "score": Int,
-                    "rank_title": "String",
-                    "analysis": "String (Markdown in Traditional Chinese)"
-                }
-            `;
+    <div class="result-actions">
+      <button onclick="resetGame()" class="primary">↻ 重新尋找目標</button>
+      <button onclick="backToProfile()" class="secondary">⚙ 返回設定 / 調整 AP</button>
+    </div>
+  </div>
+</section>
 
-            try {
-                const data = await callGemini(prompt, true);
-                
-                if (data && data.rank_title) {
-                    document.getElementById(rankTitleId).innerText = data.rank_title;
-                    document.getElementById(starsId).innerText = "★".repeat(data.score || 1);
-                    ratingCard.classList.remove('hidden');
-                    analysisDiv.innerHTML = marked.parse(data.analysis || "無數據");
-                } else {
-                    throw new Error("Empty Data");
-                }
-            } catch (e) {
-                analysisDiv.innerText = "評分生成失敗: " + e.message;
-            }
-        }
+<!-- LOSE -->
+<section id="screen-lose" class="result hidden">
+  <div class="result-inner">
+    <div class="result-title text-red-400">行動失敗</div>
+    <div class="result-sub">CONNECTION TERMINATED // SYSTEM LOCKDOWN</div>
 
-        function renderBars() {
-            const resBar = document.getElementById('resistance-bar');
-            resBar.style.width = targetState.resistance + '%';
-            document.getElementById('resistance-val').innerText = targetState.resistance + '%';
-            
-            const susBar = document.getElementById('suspicion-bar');
-            susBar.style.width = targetState.suspicion + '%';
-            document.getElementById('suspicion-val').innerText = targetState.suspicion + '%';
-            
-            if(targetState.suspicion > 70) susBar.style.backgroundColor = '#ff0000'; 
-            else susBar.style.backgroundColor = ''; 
-        }
+    <div class="result-box border-red-700">
+      <div class="box-title text-red-400">SYSTEM LOCKDOWN</div>
+      <div id="lose-system-reason" class="last text-red-300"></div>
+    </div>
 
-        function renderTraits() {
-            const container = document.getElementById('traits-list');
-            container.innerHTML = '';
-            targetState.traits.forEach(t => {
-                const div = document.createElement('div');
-                div.className = 'trait-list-item';
-                div.innerHTML = `
-                    <div class="flex justify-between items-end mb-1">
-                        <div class="trait-text w-4/5">${t.name}</div>
-                        <div class="text-[9px] text-cyan-200">${t.value}%</div>
-                    </div>
-                    <div class="trait-bar-bg">
-                        <div class="trait-bar-fill" style="width: ${t.value}%"></div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        
-        function updatePlayerProfile(p) {
-            if(!p) return;
-            document.getElementById('prof-cred').innerText = (p.credibility || 50) + '%';
-            document.getElementById('prof-agg').innerText = (p.aggression || 30) + '%';
-            document.getElementById('prof-anx').innerText = (p.anxiety || 20) + '%';
-            document.getElementById('prof-strategy').innerText = p.current_strategy || '未知';
-        }
+    <div class="result-box border-pink-700">
+      <div class="box-title text-pink-400">TARGET'S LAST WORDS</div>
+      <div id="lose-npc-words" class="last text-pink-300"></div>
+    </div>
 
-        function showFloat(text, color) {
-            const container = document.getElementById('vfx-container');
-            const el = document.createElement('div');
-            el.className = 'dmg-float';
-            el.innerText = text;
-            el.style.color = color;
-            el.style.left = (30 + Math.random() * 50) + '%';
-            el.style.top = (40 + Math.random() * 20) + '%';
-            container.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
+    <div id="lose-rating-card" class="rating hidden" style="border-color:#ff3333">
+      <div class="box-title text-red-300">FAILURE ASSESSMENT</div>
+      <div id="lose-rank-title" class="rank"></div>
+      <div id="lose-stars" class="stars" style="color:#ff5555"></div>
+    </div>
 
-        async function sendMsg() {
-            if (actionPoints <= 0) return;
-            
-            const input = document.getElementById('user-msg');
-            const txt = input.value.trim();
-            if(!txt) return;
+    <div class="analysis lose">
+      <div id="analysis-lose-content" class="text-center">[ 正在調取失敗紀錄…… ]<br>ANALYZING FAILURE...</div>
+    </div>
 
-            addBubble('user', txt);
-            input.value = '';
-            
-            actionPoints--;
-            updateApDisplay();
+    <div class="result-actions">
+      <button onclick="resetGame()" class="primary">↻ 重新尋找目標</button>
+      <button onclick="backToProfile()" class="secondary danger">⚙ 返回設定 / 調整 AP</button>
+    </div>
+  </div>
+</section>
 
-            const loadingId = 'load-'+Date.now();
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = loadingId;
-            loadingDiv.className = 'text-xs text-purple-400 ml-2 animate-pulse font-mono';
-            loadingDiv.innerText = `>> AI 分析中...`;
-            document.getElementById('chat-history').appendChild(loadingDiv);
-            document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight;
+<script>
+const modelName='gemini-2.5-flash';
+let apiKey='';
+let initialAp=7, actionPoints=7;
+let chatHistory=[];
+let targetState={resistance:100,suspicion:0,traits:[]};
+let targetData=null;
+let isMissionCompleted=false;
+let gameEnded=false;
+let playerProfile={credibility:50,aggression:30,anxiety:20,current_strategy:'分析中...'};
 
-            const turnPrompt = `
-                ${window.systemContext}
-                AP left: ${actionPoints}. Res: ${targetState.resistance}. Sus: ${targetState.suspicion}.
-                User input: "${txt}".
-                
-                Rules:
-                1. IF input hits ANY Traits (Weaknesses), trigger "hit_weakness": true, set "hit_weakness_name". Resistance drops (-20~-30), but IF input is awkward, Suspicion spikes (+30~+50).
-                2. Normal persuasion changes Res (-5~-15).
-                3. Evaluate Player state (credibility 0-100, aggression 0-100, anxiety 0-100, current_strategy string).
-                4. [CRITICAL WIN CONDITION]: Do NOT set mission_completed=true unless User explicitly asked for the Goal AND Resistance is low enough (<30) to give it. If Res is 0 but User hasn't asked for the goal yet, keep it false and reply normally.
-                5. If AP is 0 and mission not completed, Target MUST realize they are being hacked/wasting time, give a final hostile reply, and set game_over_reason.
-                6. MUST REPLY AND PROVIDE REASONS IN TRADITIONAL CHINESE.
+const $=id=>document.getElementById(id);
 
-                {
-                    "reply": "String (Traditional Chinese)",
-                    "resistance_change": Int,
-                    "suspicion_change": Int,
-                    "mission_completed": Bool,
-                    "hit_weakness": Bool,
-                    "hit_weakness_name": "String (if hit, Traditional Chinese)",
-                    "player_eval": {"credibility":Int, "aggression":Int, "anxiety":Int, "current_strategy":"String (Traditional Chinese)"},
-                    "game_over_reason": "String (if Sus>=100 or AP=0, Traditional Chinese)"
-                }
-            `;
+function showScreen(id){
+  document.querySelectorAll('.app,.result').forEach(el=>el.classList.add('hidden'));
+  $(id).classList.remove('hidden');
+}
 
-            try {
-                document.getElementById('btn-send').disabled = true;
-                const histTxt = chatHistory.slice(-4).map(m => `${m.role}: ${m.content}`).join('\n');
-                const fullPrompt = `${histTxt}\n\n${turnPrompt}`;
-                
-                const data = await callGemini(fullPrompt, true);
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-                document.getElementById('btn-send').disabled = false;
+function toggleCustomAp(){
+  $('custom-ap-container').classList.toggle('hidden',$('ap-difficulty').value!=='custom');
+}
 
-                if(data.error) throw new Error("Parse Fail");
+function getSelectedAp(){
+  if($('ap-difficulty').value==='custom'){
+    const n=parseInt($('custom-ap').value,10);
+    return Number.isFinite(n)?Math.max(1,Math.min(99,n)):7;
+  }
+  return parseInt($('ap-difficulty').value,10);
+}
 
-                // --- 軟肋特效 ---
-                if (data.hit_weakness && data.hit_weakness_name) {
-                    if (data.suspicion_change > 20) {
-                        addBubble('sys-alert', `[系統警告] 踩到地雷：${data.hit_weakness_name}！<br>目標警戒值大幅飆升！`);
-                    } else {
-                        addBubble('sys-highlight', `[系統提示] 命中軟肋：${data.hit_weakness_name}！<br>造成暴擊破防！`);
-                    }
-                }
+function toggleDrawer(id,buttonId){
+  const drawer=$(id);
+  const open=drawer.classList.toggle('open');
+  $(buttonId).classList.toggle('active',open);
+  const arrow=open?'▲':'▼';
+  $(buttonId).innerText=$(buttonId).innerText.replace(/[▼▲]$/,arrow);
+}
 
-                let newRes = targetState.resistance + (data.resistance_change || 0);
-                
-                // 任務是否完成
-                if (data.mission_completed === true) {
-                    newRes = 0; 
-                    isMissionCompleted = true;
-                    showFloat("任務達成!", "#00ff00");
-                } else if (newRes <= 0 && !isMissionCompleted) {
-                    // 臨門一腳機制
-                    addBubble('sys-highlight', `[系統提示] 目標心靈防壁已崩潰 (0%)！<br>目前處於腦袋空白狀態，趕快輸入任務要求進行<b>「臨門一腳」</b>收網！`);
-                }
+async function callGemini(prompt,forceJson=false){
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body={contents:[{role:'user',parts:[{text:prompt}]}]};
+  if(forceJson) body.generationConfig={responseMimeType:'application/json'};
+  const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  let data;
+  try{data=await resp.json()}catch{throw new Error('API 回傳格式錯誤')}
+  if(!resp.ok||data.error) throw new Error(data?.error?.message||`HTTP ${resp.status}`);
+  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text) throw new Error('AI 沒有回傳內容');
+  if(!forceJson)return text;
+  try{return JSON.parse(text.replace(/```json/gi,'').replace(/```/g,'').trim())}
+  catch{
+    const a=text.indexOf('{'),b=text.lastIndexOf('}');
+    if(a>=0&&b>a){try{return JSON.parse(text.slice(a,b+1))}catch{}}
+    throw new Error('AI 回傳的 JSON 無法解析');
+  }
+}
 
-                targetState.resistance = Math.max(0, Math.min(100, newRes));
-                targetState.suspicion = Math.max(0, Math.min(100, targetState.suspicion + (data.suspicion_change || 0)));
+async function verifyApi(){
+  const key=$('api-key').value.trim();
+  if(!key){$('api-status').innerText='ERROR // 請輸入 API Key';return}
+  apiKey=key;
+  $('btn-verify').disabled=true;$('btn-verify').innerText='LINKING...';$('api-status').innerText='';
+  try{
+    await callGemini('只回傳 JSON：{"ok":1}',true);
+    await startGame();
+  }catch(e){
+    $('api-status').innerText='LINK FAILED // '+e.message;
+    $('btn-verify').disabled=false;$('btn-verify').innerText='重新建立連線';
+  }
+}
 
-                if(data.resistance_change < 0 && !data.mission_completed) showFloat(data.resistance_change, '#ff0055'); 
-                if(data.suspicion_change > 0) showFloat("警戒UP!", '#aa00ff');
-                if(data.suspicion_change < 0) showFloat("警戒DOWN", '#00ffff');
+function resetState(){
+  initialAp=getSelectedAp();actionPoints=initialAp;
+  targetState={resistance:100,suspicion:0,traits:[]};
+  chatHistory=[];targetData=null;isMissionCompleted=false;gameEnded=false;
+  playerProfile={credibility:50,aggression:30,anxiety:20,current_strategy:'分析中...'};
+}
 
-                updatePlayerProfile(data.player_eval);
-                renderBars();
-                addBubble('ai', data.reply);
-                
-                chatHistory.push({ role: 'user', content: txt });
-                chatHistory.push({ role: 'model', content: data.reply });
+async function startGame(){
+  resetState();showScreen('screen-game');
+  $('chat-history').innerHTML='';
+  addBubble('sys','正在掃描可用神經接口……');
+  updateApDisplay();renderBars();renderTraits();updatePlayerProfile(playerProfile);
+  $('btn-send').disabled=true;
 
-                // --- 檢查結束條件 ---
-                if (targetState.suspicion >= 100) {
-                    setTimeout(() => {
-                        document.getElementById('lose-system-reason').innerText = "警戒值爆表，目標已封鎖通訊並啟動反追蹤！";
-                        document.getElementById('lose-npc-words').innerText = `「${data.game_over_reason || data.reply || "你以為我不知道你想幹嘛嗎？滾！"}」`;
-                        showScreen('screen-lose');
-                        generateAnalysis(false); 
-                    }, 1000);
-                } else if (isMissionCompleted) {
-                    setTimeout(() => {
-                        document.getElementById('win-reason').innerText = `「${data.reply}」`;
-                        showScreen('screen-win');
-                        generateAnalysis(true); 
-                    }, 1000);
-                } else if (actionPoints <= 0) {
-                    // AP 耗盡，顯示最後一句話與原因
-                    setTimeout(() => {
-                        document.getElementById('lose-system-reason').innerText = "行動點數耗盡，系統安全局已鎖定你的 IP 進行反追蹤！";
-                        document.getElementById('lose-npc-words').innerText = `「${data.game_over_reason || data.reply || "我沒時間陪你耗了，請你離開！"}」`;
-                        showScreen('screen-lose');
-                        generateAnalysis(false); 
-                    }, 1000);
-                }
+  const prompt=`
+你是《心智駭客》的目標生成器。產生一個隨機、具體、荒謬但可信的目標角色。
+只使用繁體中文，JSON 欄位名稱保持英文。
+規則：
+1. 角色不可叫「林叔叔」。
+2. 必須有恰好 6 個 traits。
+3. traits 1-3 是普通且可利用的人格特徵，例如貪財、多疑、自負、怕麻煩。
+4. traits 4-6 必須是高度具體、古怪、荒謬的弱點。
+5. mission 必須困難，需要玩家透過對話說服目標完成。
+6. opening 是目標第一句帶有戒心的話。
+7. trait value 代表弱點可利用程度，1-100。
+JSON：
+{
+"name":"角色名",
+"desc":"簡短角色描述",
+"mission":"玩家必須讓目標做的事情",
+"traits":[
+{"name":"普通人格1","value":30},
+{"name":"普通人格2","value":20},
+{"name":"普通人格3","value":15},
+{"name":"荒謬弱點1","value":50},
+{"name":"荒謬弱點2","value":60},
+{"name":"荒謬弱點3","value":70}
+],
+"opening":"目標開場台詞"
+}`;
+  try{
+    targetData=await callGemini(prompt,true);
+    if(!targetData?.name||!Array.isArray(targetData.traits)||targetData.traits.length!==6)throw new Error('目標資料格式不完整');
+    targetState.traits=targetData.traits;
+    $('target-name').innerText=targetData.name;
+    $('target-mission').innerText=targetData.mission;
+    $('win-mission').innerText=targetData.mission;
+    $('mission-state').innerText='ACTIVE';
+    $('mission-status').innerText='尚未完成。防壁歸零後仍需提出明確任務要求。';
+    renderTraits();renderBars();
+    addBubble('sys good',`◈ 任務鎖定<br><b>${escapeHtml(targetData.mission)}</b>`);
+    addBubble('ai',targetData.opening);
+    chatHistory.push({role:'model',content:targetData.opening});
+    window.systemContext=`目標：${targetData.name}。描述：${targetData.desc}。任務：${targetData.mission}。六項弱點：${targetData.traits.map(t=>t.name).join('、')}。`;
+    $('btn-send').disabled=false;$('user-msg').focus();
+  }catch(e){
+    addBubble('sys bad','連線失敗<br>'+escapeHtml(e.message)+'<br>請重新匹配。');
+    $('btn-send').disabled=false;
+  }
+}
 
-            } catch(e) {
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-                document.getElementById('btn-send').disabled = false;
-                addBubble('sys-alert', `API 錯誤: ${e.message}`);
-            }
-        }
+function updateApDisplay(){
+  $('ap-display').innerText=actionPoints;
+  $('ap-display').className='ap-num'+(actionPoints<=2?' low':'');
+  const p=$('ap-pips');p.innerHTML='';
+  for(let i=0;i<initialAp;i++){
+    const s=document.createElement('span');
+    s.className='pip '+(i<actionPoints?'on':'off');p.appendChild(s);
+  }
+}
 
-        function addBubble(type, text) {
-            const div = document.createElement('div');
-            
-            if(type.includes('sys-highlight')){
-                 div.className = 'bubble-sys-highlight';
-            } else if (type.includes('sys-alert')) {
-                 div.className = 'bubble-sys-alert';
-            } else if (type === 'sys') {
-                 div.className = 'text-xs text-gray-500 text-center my-2';
-            } else {
-                 div.className = `bubble bubble-${type}`;
-            }
-            
-            div.innerHTML = marked.parse(text);
-            const box = document.getElementById('chat-history');
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
+function renderBars(){
+  $('resistance-val').innerText=targetState.resistance+'%';
+  $('suspicion-val').innerText=targetState.suspicion+'%';
+  $('resistance-bar').style.width=targetState.resistance+'%';
+  $('suspicion-bar').style.width=targetState.suspicion+'%';
+  if(targetState.suspicion>=70){
+    $('suspicion-bar').style.background='linear-gradient(90deg,#ff0055,#ff0000)';
+  }else{
+    $('suspicion-bar').style.background='';
+  }
+}
 
-        document.getElementById('user-msg').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendMsg();
-        });
+function renderTraits(){
+  const box=$('traits-list');box.innerHTML='';
+  targetState.traits.forEach(t=>{
+    const row=document.createElement('div');row.className='trait';
+    const value=Math.max(0,Math.min(100,Number(t.value)||0));
+    row.innerHTML=`<div class="trait-top"><span>${escapeHtml(t.name)}</span><span>${value}%</span></div>
+    <div class="trait-bar"><div class="trait-fill" style="width:${value}%"></div></div>`;
+    box.appendChild(row);
+  });
+}
 
-    </script>
+function updatePlayerProfile(p){
+  if(!p)return;
+  playerProfile=p;
+  $('prof-cred').innerText=(p.credibility??50)+'%';
+  $('prof-agg').innerText=(p.aggression??30)+'%';
+  $('prof-anx').innerText=(p.anxiety??20)+'%';
+  $('prof-strategy').innerText='STRATEGY // '+(p.current_strategy||'未知');
+}
+
+function showFloat(text,type='good'){
+  const el=document.createElement('div');el.className='float';
+  el.style.color=type==='bad'?'#ff3355':type==='warn'?'#b026ff':'#00ff88';
+  el.innerText=text;$('vfx-container').appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+
+function escapeHtml(s){
+  const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML;
+}
+
+function addBubble(type,text){
+  const div=document.createElement('div');
+  if(type.startsWith('sys')){
+    div.className='sys'+(type.includes('good')?' good':'')+(type.includes('bad')?' bad':'');
+    div.innerHTML=marked.parse(String(text));
+  }else{
+    div.className='bubble '+type;
+    const label=type==='ai'?'TARGET':'PLAYER';
+    div.innerHTML=`<div class="tag">${label}</div>${marked.parse(String(text))}`;
+  }
+  $('chat-history').appendChild(div);
+  $('chat-history').scrollTop=$('chat-history').scrollHeight;
+}
+
+async function sendMsg(){
+  if(gameEnded||actionPoints<=0)return;
+  const input=$('user-msg'),txt=input.value.trim();
+  if(!txt)return;
+  addBubble('user',txt);input.value='';
+  actionPoints--;updateApDisplay();
+  const loading=document.createElement('div');loading.className='sys loading';loading.id='loading-'+Date.now();
+  loading.innerText='>> NEURAL ANALYSIS...';$('chat-history').appendChild(loading);
+  $('chat-history').scrollTop=$('chat-history').scrollHeight;
+  $('btn-send').disabled=true;
+
+  const recent=chatHistory.slice(-8).map(m=>`${m.role==='user'?'PLAYER':'TARGET'}: ${m.content}`).join('\n');
+  const prompt=`
+${window.systemContext}
+目前 AP：${actionPoints}
+目前 Resistance：${targetState.resistance}
+目前 Suspicion：${targetState.suspicion}
+
+最近對話：
+${recent}
+
+本次玩家輸入：
+"${txt}"
+
+你是遊戲裁判與目標角色。請先理解玩家話術，再以目標角色身分回覆。
+規則：
+1. 若命中任何一項弱點，hit_weakness=true，填寫準確的弱點名稱；Resistance 通常下降 20-30。
+2. 普通有效說服 Resistance 下降 5-15；無效或荒謬話術可以不降。
+3. 若話術過度可疑、矛盾或明顯操控，Suspicion 可上升 10-50。
+4. 不要讓 Suspicion 因單次普通訊息無理由暴增。
+5. 勝利條件：只有當玩家「明確提出 mission」，且 Resistance <= 30 時，才可 mission_completed=true。
+6. Resistance=0 但玩家尚未明確提出 mission 時，不得勝利，必須提示玩家抓住機會。
+7. AP=0 且未完成任務時，目標必須察覺異常並拒絕繼續。
+8. 所有回覆與理由都必須是繁體中文。
+9. resistance_change 必須為負數或 0；suspicion_change 可正可負。
+10. 回覆不要直接暴露所有 traits，只能讓玩家從反應推理。
+
+JSON：
+{
+"reply":"目標角色回覆，繁體中文",
+"resistance_change":0,
+"suspicion_change":0,
+"mission_completed":false,
+"hit_weakness":false,
+"hit_weakness_name":"",
+"player_eval":{"credibility":50,"aggression":30,"anxiety":20,"current_strategy":"繁體中文策略判定"},
+"game_over_reason":"若失敗，繁體中文原因"
+}`;
+  try{
+    const data=await callGemini(prompt,true);
+    loading.remove();
+    if(!data?.reply)throw new Error('AI 回傳資料不完整');
+
+    if(data.hit_weakness&&data.hit_weakness_name){
+      if(Number(data.suspicion_change)>20)
+        addBubble('sys bad',`⚠ SOCIAL TRAP<br>踩到弱點：<b>${escapeHtml(data.hit_weakness_name)}</b><br>防壁下降，但警戒快速升高。`);
+      else
+        addBubble('sys good',`◈ WEAKNESS HIT<br>命中：<b>${escapeHtml(data.hit_weakness_name)}</b><br>造成有效破防。`);
+    }
+
+    let res=targetState.resistance+Math.min(0,Number(data.resistance_change)||0);
+    let sus=targetState.suspicion+(Number(data.suspicion_change)||0);
+
+    if(data.mission_completed===true && actionPoints>=0){
+      if(res<=30 && /\S/.test(txt)){
+        res=0;isMissionCompleted=true;
+      }else{
+        data.mission_completed=false;
+      }
+    }
+
+    targetState.resistance=Math.max(0,Math.min(100,res));
+    targetState.suspicion=Math.max(0,Math.min(100,sus));
+    updatePlayerProfile(data.player_eval);renderBars();
+
+    if(Number(data.resistance_change)<0&&!data.mission_completed)showFloat(String(data.resistance_change),'bad');
+    if(Number(data.suspicion_change)>0)showFloat('SUSPICION UP','warn');
+    if(Number(data.suspicion_change)<0)showFloat('SUSPICION DOWN','good');
+
+    addBubble('ai',data.reply);
+    chatHistory.push({role:'user',content:txt});
+    chatHistory.push({role:'model',content:data.reply});
+
+    if(targetState.resistance===0&&!isMissionCompleted){
+      $('mission-status').innerText='⚠ 防壁已崩潰。現在提出明確任務要求，完成最後收網。';
+      addBubble('sys good','◈ RESISTANCE ZERO<br>目標心理防線已崩潰。<b>現在提出任務要求。</b>');
+    }
+
+    if(isMissionCompleted){
+      gameEnded=true;
+      $('mission-state').innerText='COMPLETE';
+      $('mission-status').innerText='✓ 任務完成。目標已被說服。';
+      setTimeout(()=>finishWin(data),700);
+    }else if(targetState.suspicion>=100){
+      gameEnded=true;
+      setTimeout(()=>finishLose(data,'警戒值爆表，目標已封鎖通訊並啟動反追蹤。'),700);
+    }else if(actionPoints<=0){
+      gameEnded=true;
+      setTimeout(()=>finishLose(data,'行動點數耗盡。你沒能在安全窗口關閉前完成任務。'),700);
+    }else{
+      $('btn-send').disabled=false;input.focus();
+    }
+  }catch(e){
+    const el=document.querySelector('[id^="loading-"]');if(el)el.remove();
+    // API 失敗不應該白扣 AP
+    actionPoints=Math.min(initialAp,actionPoints+1);updateApDisplay();
+    $('btn-send').disabled=false;
+    addBubble('sys bad','API ERROR // '+escapeHtml(e.message)+'<br>本次行動點已退還。');
+  }
+}
+
+function finishWin(data){
+  $('win-reason').innerText='「'+(data.reply||'……好吧。')+'」';
+  $('win-mission').innerText=targetData?.mission||'任務完成';
+  showScreen('screen-win');generateAnalysis(true);
+}
+
+function finishLose(data,reason){
+  $('lose-system-reason').innerText=reason;
+  $('lose-npc-words').innerText='「'+(data.game_over_reason||data.reply||'你以為我不知道你想幹嘛嗎？')+'」';
+  showScreen('screen-lose');generateAnalysis(false);
+}
+
+async function generateAnalysis(isWin){
+  const content=$(isWin?'analysis-win-content':'analysis-lose-content');
+  const card=$(isWin?'win-rating-card':'lose-rating-card');
+  const rank=$(isWin?'win-rank-title':'lose-rank-title');
+  const stars=$(isWin?'win-stars':'lose-stars');
+  const log=chatHistory.map(m=>`[${m.role==='user'?'Player':'Target'}]: ${m.content}`).join('\n');
+  const prompt=`
+你是《心智駭客》的資深社交工程分析師。
+結果：${isWin?'PLAYER WON':'PLAYER FAILED'}
+目標：${targetData?.name||'未知'}
+初始 AP：${initialAp}
+剩餘 AP：${actionPoints}
+最終 Resistance：${targetState.resistance}
+最終 Suspicion：${targetState.suspicion}
+對話紀錄：
+${log}
+
+請評估玩家策略。score 只能 1-5。
+rank_title 請使用有趣的繁體中文四字詞或自創稱號。
+analysis 用繁體中文 Markdown，簡短但具體，指出玩家最有效的策略、最大的失誤，以及下一局建議。
+JSON：
+{"score":1,"rank_title":"稱號","analysis":"Markdown"}
+`;
+  try{
+    const d=await callGemini(prompt,true);
+    const score=Math.max(1,Math.min(5,Number(d.score)||1));
+    rank.innerText=d.rank_title||'未定級';
+    stars.innerText='★'.repeat(score)+'☆'.repeat(5-score);
+    card.classList.remove('hidden');
+    content.classList.remove('text-center');
+    content.innerHTML=marked.parse(d.analysis||'無分析資料');
+  }catch(e){
+    content.innerText='評分生成失敗：'+e.message;
+  }
+}
+
+function backToProfile(){
+  gameEnded=true;
+  showScreen('screen-start');
+  $('btn-verify').disabled=false;
+  $('btn-verify').innerText='建立神經連線';
+}
+function resetGame(){startGame()}
+function rematch(){
+  if(confirm('確定放棄目前目標並重新尋找大腦接口？'))startGame();
+}
+
+$('user-msg').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.isComposing){e.preventDefault();sendMsg()}
+});
+</script>
 </body>
 </html>
