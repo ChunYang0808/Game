@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.4 | Final Push</title>
+    <title>心智駭客 V1.4.1 | 匹配優化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
@@ -198,8 +198,12 @@
             
             <div class="mb-2 pr-10">
                 <div class="flex justify-between items-end">
-                    <h3 id="target-name" class="text-lg font-bold text-white leading-none">TARGET</h3>
-                    <span class="text-[9px] text-gray-500 uppercase ml-2">Subject</span>
+                    <div class="flex items-end">
+                        <h3 id="target-name" class="text-lg font-bold text-white leading-none">TARGET</h3>
+                        <span class="text-[9px] text-gray-500 uppercase ml-2">Subject</span>
+                    </div>
+                    <!-- 新增：重新匹配按鈕 -->
+                    <button onclick="startGame()" class="text-[10px] text-cyan-400 border border-cyan-500/50 bg-black px-1.5 py-0.5 rounded hover:bg-cyan-900 transition">重新匹配</button>
                 </div>
                 <div class="text-[10px] text-yellow-300 mt-1 truncate" id="target-mission-header">Loading...</div>
             </div>
@@ -281,6 +285,10 @@
         <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md text-xl bg-gradient-to-r from-green-400 to-blue-500 border-2 border-white mb-4 no-shrink">
             HI~(駭)下一位！
         </button>
+        <!-- 新增：返回設定按鈕 -->
+        <button onclick="showScreen('screen-api')" class="btn-start px-8 py-3 w-full max-w-md text-lg no-shrink" style="background: rgba(0,0,0,0.6); border: 1px solid #888; color: #ccc;">
+            返回設定 (調整 AP)
+        </button>
     </div>
 
     <!-- Screen 4: Lose Analysis -->
@@ -307,6 +315,10 @@
 
         <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md bg-red-600 mb-4 no-shrink">
             重新尋找目標
+        </button>
+        <!-- 新增：返回設定按鈕 -->
+        <button onclick="showScreen('screen-api')" class="btn-start px-8 py-3 w-full max-w-md no-shrink" style="background: rgba(50,0,0,0.6); border: 1px solid #ff4444; color: #ff6666;">
+            返回設定 (調整 AP)
         </button>
     </div>
 
@@ -380,6 +392,8 @@
             
             try {
                 await callGemini("Return JSON: {\"ok\":1}", true);
+                // 恢復按鈕文字，以便下次從設定頁進入時看起來正常
+                document.getElementById('btn-verify').innerText = "強制連線";
                 startGame();
             } catch(e) {
                 document.getElementById('api-status').innerText = "連線失敗: " + e.message;
@@ -639,21 +653,6 @@ JSON ONLY:
                 addBubble('sys', `Error: ${e.message}`);
             }
         }
-
-        function addBubble(type, text) {
-            const div = document.createElement('div');
-            div.className = type.includes('sys') ? 'text-xs text-gray-500 text-center my-2' : `bubble bubble-${type}`;
-            if(type === 'sys-highlight') div.className = 'bubble bubble-sys-highlight my-3 shadow-lg';
-            
-            div.innerHTML = marked.parse(text);
-            const box = document.getElementById('chat-history');
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        document.getElementById('user-msg').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendMsg();
-        });
 
         async function generateAnalysis(isWin) {
             const divId = isWin ? 'analysis-win-content' : 'analysis-lose-content';
