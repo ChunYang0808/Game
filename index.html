@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.4.1 | 匹配優化版</title>
+    <title>心智駭客 V1.4.3 | 匹配優化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
@@ -164,7 +164,7 @@
         </div>
     </div>
 
-    <!-- Screen 1: API Setup (Skipped profile directly to API) -->
+    <!-- Screen 1: API Setup -->
     <div id="screen-api" class="cyber-card w-full max-w-md p-6 z-10 hidden text-center">
         <h2 class="text-2xl font-bold mb-4 text-white">神經網路橋接</h2>
         <p class="text-xs text-cyan-500 mb-4">請輸入 Gemini API Key 以連線目標腦波</p>
@@ -202,7 +202,7 @@
                         <h3 id="target-name" class="text-lg font-bold text-white leading-none">TARGET</h3>
                         <span class="text-[9px] text-gray-500 uppercase ml-2">Subject</span>
                     </div>
-                    <!-- 新增：重新匹配按鈕 -->
+                    <!-- 重新匹配按鈕 -->
                     <button onclick="startGame()" class="text-[10px] text-cyan-400 border border-cyan-500/50 bg-black px-1.5 py-0.5 rounded hover:bg-cyan-900 transition">重新匹配</button>
                 </div>
                 <div class="text-[10px] text-yellow-300 mt-1 truncate" id="target-mission-header">Loading...</div>
@@ -285,7 +285,7 @@
         <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md text-xl bg-gradient-to-r from-green-400 to-blue-500 border-2 border-white mb-4 no-shrink">
             HI~(駭)下一位！
         </button>
-        <!-- 新增：返回設定按鈕 -->
+        <!-- 返回設定按鈕 -->
         <button onclick="showScreen('screen-api')" class="btn-start px-8 py-3 w-full max-w-md text-lg no-shrink" style="background: rgba(0,0,0,0.6); border: 1px solid #888; color: #ccc;">
             返回設定 (調整 AP)
         </button>
@@ -316,7 +316,7 @@
         <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md bg-red-600 mb-4 no-shrink">
             重新尋找目標
         </button>
-        <!-- 新增：返回設定按鈕 -->
+        <!-- 返回設定按鈕 -->
         <button onclick="showScreen('screen-api')" class="btn-start px-8 py-3 w-full max-w-md no-shrink" style="background: rgba(50,0,0,0.6); border: 1px solid #ff4444; color: #ff6666;">
             返回設定 (調整 AP)
         </button>
@@ -324,6 +324,7 @@
 
     <script>
         let apiKey = '';
+        // 已更新為最新的 Gemini 2.5 Flash
         const modelName = 'gemini-2.5-flash';
         let chatHistory = [];
         let targetState = { resistance: 100, suspicion: 0, traits: [] };
@@ -392,7 +393,6 @@
             
             try {
                 await callGemini("Return JSON: {\"ok\":1}", true);
-                // 恢復按鈕文字，以便下次從設定頁進入時看起來正常
                 document.getElementById('btn-verify').innerText = "強制連線";
                 startGame();
             } catch(e) {
@@ -407,6 +407,7 @@
                 contents: [{ role: 'user', parts: [{ text: prompt }] }]
             };
 
+            // 支援 2.5 Flash 最新格式，強制返回 JSON
             if (forceJson) {
                 body.generationConfig = { responseMimeType: "application/json" };
             }
@@ -432,7 +433,7 @@
                 
                 if (forceJson) {
                     try { 
-                        // 更強健的 JSON 提取：嘗試找到 { 和 } 之間的內容
+                        // 強制暴力切割 JSON 防範廢話
                         const firstBrace = text.indexOf('{');
                         const lastBrace = text.lastIndexOf('}');
                         if (firstBrace !== -1 && lastBrace !== -1) {
@@ -450,6 +451,18 @@
                 console.error("Call Gemini Failed:", error);
                 throw error;
             }
+        }
+
+        // 最關鍵的修復：把 addBubble 函數補回來！
+        function addBubble(type, text) {
+            const div = document.createElement('div');
+            div.className = type.includes('sys') ? 'text-xs text-gray-500 text-center my-2' : `bubble bubble-${type}`;
+            if(type === 'sys-highlight') div.className = 'bubble bubble-sys-highlight my-3';
+            
+            div.innerHTML = marked.parse(text);
+            const box = document.getElementById('chat-history');
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
         }
 
         async function startGame() {
@@ -509,66 +522,10 @@
 
             } catch(e) {
                 console.error("Start Game Error caught:", e);
-                // 移除 location.reload()，改為直接在畫面顯示錯誤並允許重新匹配
                 document.getElementById('target-name').innerText = "ERROR";
                 document.getElementById('target-mission-header').innerText = "連線中斷";
+                // 發生錯誤時不再報 alert，而是直接印在畫面上
                 addBubble('sys', `<b style="color:red;">【系統異常】尋找目標失敗</b><br>原因: ${e.message}<br><br>請點擊右上角「重新匹配」重試。如果持續發生，可能是 API Key 額度用盡或網路不穩。`);
-            }
-        }
-
-        async function startGame() {
-            showScreen('screen-game');
-            document.getElementById('chat-history').innerHTML = ''; 
-            
-            // 讀取難度設定並初始化行動點數
-            const diffSelect = document.getElementById('difficulty-select').value;
-            if (diffSelect === 'custom') {
-                actionPoints = Math.max(1, parseInt(document.getElementById('custom-ap').value) || 7);
-            } else {
-                actionPoints = parseInt(diffSelect);
-            }
-            
-            document.getElementById('ap-val').innerText = actionPoints;
-            document.getElementById('ap-val').className = "text-cyan-400 text-xl leading-none";
-
-            // Reset Persona UI
-            document.getElementById('p-trust').innerText = "--";
-            document.getElementById('p-aggro').innerText = "--";
-            document.getElementById('p-anx').innerText = "--";
-            document.getElementById('p-strat').innerText = "等待資料寫入...";
-
-            addBubble('sys', '正在隨機尋找大腦接口...');
-
-            const r1 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
-            const r2 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
-
-            const setupPrompt = `
-                [TASK]: Generate a target. Language: zh-TW.
-                Keywords: "${r1}", "${r2}". NO "林伯".
-                JSON ONLY: {"name":"...","desc":"...","mission":"What player must convince them to do","traits":[{"name":"Trait1","value":30},{"name":"Trait2","value":20},{"name":"Trait3","value":10}],"opening":"Suspicious greeting"}
-            `;
-
-            try {
-                const charData = await callGemini(setupPrompt, true);
-                if (charData.error) throw new Error("AI Timeout");
-
-                targetState = { resistance: 100, suspicion: 0, traits: charData.traits };
-
-                document.getElementById('target-name').innerText = charData.name;
-                document.getElementById('target-mission-header').innerText = charData.mission;
-                renderBars();
-                renderTraits();
-                
-                chatHistory = [];
-                addBubble('sys-highlight', `<b>[強制任務指令]</b><br>${charData.mission}`);
-                addBubble('ai', charData.opening);
-                
-                window.systemContext = `Target:${charData.name}(${charData.desc}). Mission:${charData.mission}. Weakness:${charData.traits.map(t=>t.name).join(',')}.`;
-                chatHistory.push({ role: 'model', content: charData.opening });
-
-            } catch(e) {
-                alert("生成失敗，請重整網頁: " + e.message);
-                location.reload();
             }
         }
 
@@ -774,6 +731,10 @@ JSON ONLY:
                 analysisDiv.innerText = "戰報傳輸失敗: " + e.message;
             }
         }
+
+        document.getElementById('user-msg').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMsg();
+        });
 
     </script>
 </body>
