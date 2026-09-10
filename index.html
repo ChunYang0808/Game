@@ -172,6 +172,18 @@
         <div class="relative mb-6">
              <input id="api-key" type="password" class="cyber-input text-center tracking-widest" placeholder="AIzaSy...">
         </div>
+
+        <!-- 難度選擇區塊 -->
+        <div class="mb-6 text-left">
+            <label class="block text-[10px] text-purple-400 mb-1 uppercase tracking-widest">入侵難度 (行動點數限制)</label>
+            <select id="difficulty-select" class="cyber-input bg-black mb-2 text-sm" onchange="toggleCustomAp()">
+                <option value="12">入侵者 (Intruder) - 12 AP</option>
+                <option value="9">操盤者 (Operator) - 9 AP</option>
+                <option value="7" selected>心智駭客 (Mind Hacker) - 7 AP</option>
+                <option value="custom">自訂義 (Custom)</option>
+            </select>
+            <input id="custom-ap" type="number" class="cyber-input hidden text-center" placeholder="輸入自訂 AP (例：15)" min="1" max="99">
+        </div>
        
         <div id="api-status" class="text-xs h-4 mb-4 text-pink-500 font-bold"></div>
         <button id="btn-verify" onclick="verifyApi()" class="btn-start w-full py-2">強制連線</button>
@@ -316,6 +328,17 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
+        function toggleCustomAp() {
+            const select = document.getElementById('difficulty-select');
+            const customInput = document.getElementById('custom-ap');
+            if (select.value === 'custom') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
         function togglePersona() {
             const panel = document.getElementById('persona-panel');
             if (panel.classList.contains('hidden')) {
@@ -397,7 +420,15 @@
         async function startGame() {
             showScreen('screen-game');
             document.getElementById('chat-history').innerHTML = ''; 
-            actionPoints = 7;
+            
+            // 讀取難度設定並初始化行動點數
+            const diffSelect = document.getElementById('difficulty-select').value;
+            if (diffSelect === 'custom') {
+                actionPoints = Math.max(1, parseInt(document.getElementById('custom-ap').value) || 7);
+            } else {
+                actionPoints = parseInt(diffSelect);
+            }
+            
             document.getElementById('ap-val').innerText = actionPoints;
             document.getElementById('ap-val').className = "text-cyan-400 text-xl leading-none";
 
