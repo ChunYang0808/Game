@@ -713,18 +713,17 @@ JSON ONLY:
 Context: ${window.systemContext}
 State: Res: ${targetState.resistance}/100, Sus: ${targetState.suspicion}/100, AP: ${actionPoints}/7. Input: "${txt}".
 
-[RULES]:
-1. Sus: +/- based on trust (-20 to +30).
-2. Res: drop if persuaded.
-3. ACHILLES' HEEL: If Input heavily targets a WEAKNESS trait:
-   - Good approach: HUGE Res drop (-40~-60), "hit_weakness":"TraitName", "weakness_result":"success"
-   - Bad approach: HUGE Sus increase (+40~+60), "hit_weakness":"TraitName", "weakness_result":"fail"
-   - Neutral: null
-4. WIN CHECK: "mission_completed": true IF you agree/yield.
-5. PLAYER ANALYSIS: rate 0-100 & brief strategy.
+[RULES - BALANCED GAMEPLAY]:
+1. Sus: Pushy/Fake? +10~+20. Calming/Logical? -5~-15.
+2. Res: Normal good argument? -5~-15. Boring/Nonsense? +5.
+3. ACHILLES' HEEL: If Input directly targets a WEAKNESS trait:
+   - Good hit: "hit_weakness":"TraitName", "weakness_result":"success", Res drops -20~-30. (CRUCIAL: Do NOT surrender the mission instantly, just show heavy hesitation/shaken resolve in your reply).
+   - Bad hit/Offensive: "hit_weakness":"TraitName", "weakness_result":"fail", Sus rises +20~+30.
+4. WIN CHECK: "mission_completed": true ONLY IF the user explicitly pushes for the mission objective AND your Resistance is very low/broken. Your reply must clearly agree to the task.
+5. PLAYER ANALYSIS: rate 0-100 & brief strategy summary.
 
 JSON ONLY:
-{"reply":"String(zh-TW)","resistance_change":int,"suspicion_change":int,"mission_completed":bool,"hit_weakness":"String/null","weakness_result":"success/fail/null","trait_updates":[{"name":"String","new_value":int}],"game_over_reason":"String","player_analysis":{"trustworthiness":int,"aggressiveness":int,"anxiety":int,"strategy":"String"}}
+{"reply":"String(zh-TW)","resistance_change":int,"suspicion_change":int,"mission_completed":bool,"hit_weakness":"String/null","weakness_result":"success/fail/null","trait_updates":[{"name":"String","new_value":int}],"game_over_reason":"String/null","player_analysis":{"trustworthiness":int,"aggressiveness":int,"anxiety":int,"strategy":"String"}}
 `;
 
             try {
