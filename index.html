@@ -113,6 +113,10 @@ select.input{color:#fff}
 .objective-head{display:flex;justify-content:space-between;color:var(--gold);font-size:9px;font-weight:900;letter-spacing:.12em}
 .objective-text{font-size:12px;color:#fff;margin-top:3px;line-height:1.45}
 .objective-status{font-size:9px;color:#9b8c5b;margin-top:4px}
+.objective-type{font-family:'Orbitron';font-size:8px;color:#b026ff;letter-spacing:.1em;margin-top:5px}
+.turn{font-family:'Orbitron';font-size:8px;color:#65717b;margin-top:2px}
+.chaos-badge{display:inline-block;margin-left:5px;padding:2px 5px;border:1px solid #7b3cff;color:#d0aaff;background:rgba(176,38,255,.08)}
+.event{align-self:center;max-width:94%;font-size:10px;text-align:center;padding:7px 10px;color:#ffe99a;border:1px dashed #8a6d1d;background:rgba(70,50,0,.18)}
 
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
 .stat{padding:7px 9px;border:1px solid #24303c;background:rgba(0,0,0,.35)}
@@ -258,12 +262,14 @@ select.input{color:#fff}
       <div class="ap">
         <div class="sub">ACTION POINTS</div>
         <div id="ap-display" class="ap-num">7</div>
+        <div id="turn-display" class="turn">TURN 0</div>
         <div id="ap-pips" class="pips"></div>
       </div>
     </header>
 
     <div class="objective">
       <div class="objective-head"><span>◈ PRIMARY OBJECTIVE</span><span id="mission-state">ACTIVE</span></div>
+      <div id="mission-type" class="objective-type">CHAOS CONTRACT // RANDOM</div>
       <div id="target-mission" class="objective-text">載入任務...</div>
       <div id="mission-status" class="objective-status">尚未完成。防壁歸零後仍需提出明確任務要求。</div>
     </div>
@@ -353,7 +359,7 @@ select.input{color:#fff}
     </div>
 
     <div class="result-box border-pink-700">
-      <div class="box-title text-pink-400">TARGET'S LAST WORDS</div>
+      <div class="box-title text-pink-400">NPC CUT-OFF // LAST LINE</div>
       <div id="lose-npc-words" class="last text-pink-300"></div>
     </div>
 
@@ -384,6 +390,23 @@ let targetData=null;
 let isMissionCompleted=false;
 let gameEnded=false;
 let playerProfile={credibility:50,aggression:30,anxiety:20,current_strategy:'分析中...'};
+let turnCount=0;
+let missionGenre='混沌隨機';
+const missionGenres=[
+  '荒謬差事','都市怪談','日常災難','社交尷尬','超現實委託','古怪儀式','無害惡作劇','謎之收藏','深夜怪事','完全失控'
+];
+const genreHints={
+  '荒謬差事':'讓目標完成一件非常沒必要但具體的日常差事。',
+  '都市怪談':'帶有詭異、神秘、但不血腥的都市怪談氛圍。',
+  '日常災難':'把一個普通小事弄得像重大危機，但結果必須安全。',
+  '社交尷尬':'讓目標做一件非常尷尬、奇怪但無害的社交行為。',
+  '超現實委託':'任務邏輯像夢境，必須具體到玩家能透過對話完成。',
+  '古怪儀式':'設計一個虛構、無害、帶儀式感的怪事。',
+  '無害惡作劇':'只允許遊戲內或角色自己的物品，不能傷害人或財物。',
+  '謎之收藏':'圍繞目標一個荒唐收藏癖，讓他完成古怪整理或展示。',
+  '深夜怪事':'有輕微驚悚感，但禁止血腥、傷害、死亡或自殘內容。',
+  '完全失控':'混合兩種以上風格，任務必須出人意料且仍可安全遊玩。'
+};
 
 const $=id=>document.getElementById(id);
 
@@ -448,7 +471,8 @@ async function verifyApi(){
 function resetState(){
   initialAp=getSelectedAp();actionPoints=initialAp;
   targetState={resistance:100,suspicion:0,traits:[]};
-  chatHistory=[];targetData=null;isMissionCompleted=false;gameEnded=false;
+  chatHistory=[];targetData=null;isMissionCompleted=false;gameEnded=false;turnCount=0;
+  missionGenre=missionGenres[Math.floor(Math.random()*missionGenres.length)];
   playerProfile={credibility:50,aggression:30,anxiety:20,current_strategy:'分析中...'};
 }
 
@@ -459,38 +483,53 @@ async function startGame(){
   updateApDisplay();renderBars();renderTraits();updatePlayerProfile(playerProfile);
   $('btn-send').disabled=true;
 
+  const chaosSeed=Math.floor(Math.random()*999999);
+  const genreHint=genreHints[missionGenre]||'完全隨機、古怪但安全。';
   const prompt=`
-你是《心智駭客》的目標生成器。產生一個隨機、具體、荒謬但可信的目標角色。
+你是《心智駭客》的「混沌目標生成器」。每一局都必須像抽到一張完全不同的怪奇事件卡。
 只使用繁體中文，JSON 欄位名稱保持英文。
-規則：
+本局隨機種子：${chaosSeed}
+本局任務風格：${missionGenre}
+風格提示：${genreHint}
+
+核心規則：
 1. 角色不可叫「林叔叔」。
 2. 必須有恰好 6 個 traits。
-3. traits 1-3 是普通且可利用的人格特徵，例如貪財、多疑、自負、怕麻煩。
-4. traits 4-6 必須是高度具體、古怪、荒謬的弱點。
-5. mission 必須困難，需要玩家透過對話說服目標完成。
-6. opening 是目標第一句帶有戒心的話。
-7. trait value 代表弱點可利用程度，1-100。
+3. traits 1-3 是普通人格特徵；4-6 是高度具體、古怪、荒謬或輕微詭異的弱點。
+4. 任務必須「完全隨機」，不要每局都像取得資料、拿到權限、叫人交出東西。任務可以是做怪事、完成荒唐習慣、說一句指定的怪話、整理某種東西、完成虛構儀式、處理超現實小事件等。
+5. 任務必須安全、無害、純遊戲內情境。禁止真實駭客行為、竊取密碼、金錢詐騙、跟蹤、傷害、血腥、自殘或危險行為。
+6. 可以有「獵奇／驚悚」氣氛，但只能靠詭異細節、怪異習慣、都市傳說感營造，不描述血腥或傷害。
+7. mission 必須具體、困難、可透過對話完成，而且最好有意外笑點。
+8. opening 是目標第一句帶戒心、符合角色個性的話。
+9. desc 讓玩家快速理解目標，但不要直接列出弱點。
+10. 生成一條「disconnect_line」，這是目標切斷通話前最後一句吐槽。它必須像 NPC 自己講的話，可以毒舌、荒謬、傻眼或冷淡，但不要是系統錯誤訊息。
+11. mission_type 填寫 4-10 字的怪奇任務類型名稱。
+12. traits 的 value 是弱點可利用程度，1-100。
+
 JSON：
 {
-"name":"角色名",
-"desc":"簡短角色描述",
-"mission":"玩家必須讓目標做的事情",
-"traits":[
-{"name":"普通人格1","value":30},
-{"name":"普通人格2","value":20},
-{"name":"普通人格3","value":15},
-{"name":"荒謬弱點1","value":50},
-{"name":"荒謬弱點2","value":60},
-{"name":"荒謬弱點3","value":70}
-],
-"opening":"目標開場台詞"
-}`;
-  try{
+ "name":"角色名",
+ "desc":"簡短角色描述",
+ "mission":"玩家必須讓目標做的事情",
+ "mission_type":"怪奇任務類型",
+ "traits":[
+  {"name":"普通人格1","value":30},
+  {"name":"普通人格2","value":20},
+  {"name":"普通人格3","value":15},
+  {"name":"荒謬弱點1","value":50},
+  {"name":"荒謬弱點2","value":60},
+  {"name":"荒謬弱點3","value":70}
+ ],
+ "opening":"目標開場台詞",
+ "disconnect_line":"目標切斷通話前最後一句吐槽"
+}`;  try{
     targetData=await callGemini(prompt,true);
-    if(!targetData?.name||!Array.isArray(targetData.traits)||targetData.traits.length!==6)throw new Error('目標資料格式不完整');
+    if(!targetData?.name||!targetData?.mission||!Array.isArray(targetData.traits)||targetData.traits.length!==6)throw new Error('目標資料格式不完整');
+    if(!targetData.disconnect_line)targetData.disconnect_line='……行了，這通電話到此為止。';
     targetState.traits=targetData.traits;
     $('target-name').innerText=targetData.name;
     $('target-mission').innerText=targetData.mission;
+    $('mission-type').innerText='CHAOS CONTRACT // '+(targetData.mission_type||missionGenre);
     $('win-mission').innerText=targetData.mission;
     $('mission-state').innerText='ACTIVE';
     $('mission-status').innerText='尚未完成。防壁歸零後仍需提出明確任務要求。';
@@ -508,6 +547,7 @@ JSON：
 
 function updateApDisplay(){
   $('ap-display').innerText=actionPoints;
+  $('turn-display').innerText='TURN '+turnCount;
   $('ap-display').className='ap-num'+(actionPoints<=2?' low':'');
   const p=$('ap-pips');p.innerHTML='';
   for(let i=0;i<initialAp;i++){
@@ -563,11 +603,13 @@ function addBubble(type,text){
   const div=document.createElement('div');
   if(type.startsWith('sys')){
     div.className='sys'+(type.includes('good')?' good':'')+(type.includes('bad')?' bad':'');
-    div.innerHTML=marked.parse(String(text));
+    div.textContent=String(text);
   }else{
     div.className='bubble '+type;
     const label=type==='ai'?'TARGET':'PLAYER';
-    div.innerHTML=`<div class="tag">${label}</div>${marked.parse(String(text))}`;
+    const tag=document.createElement('div');tag.className='tag';tag.textContent=label;
+    const body=document.createElement('div');body.textContent=String(text);
+    div.appendChild(tag);div.appendChild(body);
   }
   $('chat-history').appendChild(div);
   $('chat-history').scrollTop=$('chat-history').scrollHeight;
@@ -578,7 +620,7 @@ async function sendMsg(){
   const input=$('user-msg'),txt=input.value.trim();
   if(!txt)return;
   addBubble('user',txt);input.value='';
-  actionPoints--;updateApDisplay();
+  actionPoints--;turnCount++;updateApDisplay();
   const loading=document.createElement('div');loading.className='sys loading';loading.id='loading-'+Date.now();
   loading.innerText='>> NEURAL ANALYSIS...';$('chat-history').appendChild(loading);
   $('chat-history').scrollTop=$('chat-history').scrollHeight;
@@ -606,8 +648,10 @@ ${recent}
 5. 勝利條件：只有當玩家「明確提出 mission」，且 Resistance <= 30 時，才可 mission_completed=true。
 6. Resistance=0 但玩家尚未明確提出 mission 時，不得勝利，必須提示玩家抓住機會。
 7. AP=0 且未完成任務時，目標必須察覺異常並拒絕繼續。
-8. 所有回覆與理由都必須是繁體中文。
-9. resistance_change 必須為負數或 0；suspicion_change 可正可負。
+8. 所有回覆、理由、事件與最後一句都必須是繁體中文。
+9. 偶爾可觸發一個短小的「event」，製造怪奇、尷尬或意外情節；大多數回合也可以不觸發。
+10. 若本回合造成遊戲結束，reply 可以是目標當下反應，disconnect_line 則必須是目標準備切斷通話前的最後一句吐槽。
+11. resistance_change 必須為負數或 0；suspicion_change 可正可負。
 10. 回覆不要直接暴露所有 traits，只能讓玩家從反應推理。
 
 JSON：
@@ -619,7 +663,10 @@ JSON：
 "hit_weakness":false,
 "hit_weakness_name":"",
 "player_eval":{"credibility":50,"aggression":30,"anxiety":20,"current_strategy":"繁體中文策略判定"},
-"game_over_reason":"若失敗，繁體中文原因"
+"game_over_reason":"若失敗，繁體中文原因",
+"disconnect_line":"目標切斷通話前最後一句吐槽",
+"event":"可選的短小怪奇事件，沒有就留空",
+"event_type":"weird"
 }`;
   try{
     const data=await callGemini(prompt,true);
@@ -631,6 +678,13 @@ JSON：
         addBubble('sys bad',`⚠ SOCIAL TRAP<br>踩到弱點：<b>${escapeHtml(data.hit_weakness_name)}</b><br>防壁下降，但警戒快速升高。`);
       else
         addBubble('sys good',`◈ WEAKNESS HIT<br>命中：<b>${escapeHtml(data.hit_weakness_name)}</b><br>造成有效破防。`);
+    }
+
+    if(data.event){
+      const eventType=['good','bad'].includes(data.event_type)?data.event_type:'weird';
+      const ev=document.createElement('div');ev.className=eventType==='bad'?'sys bad':eventType==='good'?'sys good':'event';
+      ev.innerText='◈ '+String(data.event);$('chat-history').appendChild(ev);
+      $('chat-history').scrollTop=$('chat-history').scrollHeight;
     }
 
     let res=targetState.resistance+Math.min(0,Number(data.resistance_change)||0);
@@ -668,10 +722,10 @@ JSON：
       setTimeout(()=>finishWin(data),700);
     }else if(targetState.suspicion>=100){
       gameEnded=true;
-      setTimeout(()=>finishLose(data,'警戒值爆表，目標已封鎖通訊並啟動反追蹤。'),700);
+      setTimeout(()=>finishLose(data,'警戒值爆表。NPC 已看穿你的意圖，直接切斷通話。'),700);
     }else if(actionPoints<=0){
       gameEnded=true;
-      setTimeout(()=>finishLose(data,'行動點數耗盡。你沒能在安全窗口關閉前完成任務。'),700);
+      setTimeout(()=>finishLose(data,'行動點數耗盡。NPC 覺得你越講越怪，決定不再浪費時間。'),700);
     }else{
       $('btn-send').disabled=false;input.focus();
     }
@@ -692,7 +746,7 @@ function finishWin(data){
 
 function finishLose(data,reason){
   $('lose-system-reason').innerText=reason;
-  $('lose-npc-words').innerText='「'+(data.game_over_reason||data.reply||'你以為我不知道你想幹嘛嗎？')+'」';
+  $('lose-npc-words').innerText='「'+(data.disconnect_line||data.game_over_reason||data.reply||targetData?.disconnect_line||'行了，這通電話到此為止。')+'」';
   showScreen('screen-lose');generateAnalysis(false);
 }
 
@@ -710,6 +764,7 @@ async function generateAnalysis(isWin){
 剩餘 AP：${actionPoints}
 最終 Resistance：${targetState.resistance}
 最終 Suspicion：${targetState.suspicion}
+任務類型：${targetData?.mission_type||missionGenre}
 對話紀錄：
 ${log}
 
