@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.4.5 | 純粹混沌版</title>
+    <title>心智駭客 V1.4.6 | 純粹混沌版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
@@ -227,7 +227,6 @@
 
             <!-- Double Persona Panel Toggle -->
             <button onclick="togglePersona()" class="text-[10px] text-purple-400 underline mb-1">顯示/隱藏 雙重人格監測面板</button>
-            
             <div id="persona-panel" class="hidden bg-gray-900 border border-purple-500/50 p-2 mb-2 rounded shadow-inner">
                 <div class="text-[10px] text-purple-300 mb-1 font-bold">PLAYER PROFILE (實時監測)</div>
                 <div class="grid grid-cols-3 gap-2 text-[10px] text-gray-300">
@@ -238,10 +237,13 @@
                 </div>
             </div>
 
-            <!-- Dynamic Traits -->
-            <div class="text-[10px] text-gray-500 mb-1 mt-2">目標軟肋掃描結果：</div>
-            <div id="traits-container" class="grid grid-cols-3 gap-2">
-                <!-- JS Inject -->
+            <!-- Dynamic Traits Toggle Panel -->
+            <button onclick="toggleTraits()" class="text-[10px] text-cyan-400 underline mb-1 mt-1 block">顯示/隱藏 目標軟肋掃描面板</button>
+            <div id="traits-panel" class="bg-gray-900 border border-cyan-500/50 p-2 mb-1 rounded shadow-inner">
+                <div class="text-[10px] text-cyan-300 mb-2 font-bold border-b border-gray-700 pb-1">TARGET WEAKNESSES (軟肋分析)</div>
+                <div id="traits-container" class="space-y-2.5">
+                    <!-- JS Inject -->
+                </div>
             </div>
         </div>
 
@@ -333,7 +335,8 @@
         const chaosSeeds = [
             "傲嬌的", "有潔癖的", "剛失戀的", "中樂透的", "欠高利貸的", 
             "迷信星座的", "討厭人類的", "想睡覺的", "憤世嫉俗的", 
-            "防備心強的", "邏輯嚴密的", "容易暴怒的", "膽小怕事的"
+            "防備心強的", "邏輯嚴密的", "容易暴怒的", "膽小怕事的",
+            "正在逃亡的", "有被害妄想的", "只相信數據的", "極度自戀的"
         ];
 
         function showScreen(id) {
@@ -354,6 +357,15 @@
 
         function togglePersona() {
             const panel = document.getElementById('persona-panel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        function toggleTraits() {
+            const panel = document.getElementById('traits-panel');
             if (panel.classList.contains('hidden')) {
                 panel.classList.remove('hidden');
             } else {
@@ -488,12 +500,12 @@
             const r1 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
             const r2 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
 
-            // 強制 AI 自己發明三個具體的奇特軟肋！移除資料庫！
+            // 強制 AI 自己發明 3-5 個具體的奇特軟肋
             const setupPrompt = `
                 [TASK]: Generate a target. Language: zh-TW.
                 Keywords for Role: "${r1}", "${r2}". NO "林伯".
                 CRITICAL RULES:
-                1. Invent EXACTLY 3 highly creative, specific, and bizarre psychological weaknesses (traits) for this character. Do NOT use generic traits like "greedy" or "stubborn". Make them unique and funny (e.g. "害怕被已讀不回", "對奇數有強迫症").
+                1. Invent 3 to 5 highly creative, specific, and bizarre psychological weaknesses (traits) for this character. Do NOT use generic traits like "greedy" or "stubborn". Make them unique and funny (e.g. "害怕被已讀不回", "對奇數有強迫症", "無法忍受任何以質數結尾的報價").
                 2. Assign random percentage values (20-80) to them.
                 JSON ONLY: {"name":"...","desc":"...","mission":"What player must convince them to do","traits":[{"name":"CreativeTrait1","value":30},{"name":"CreativeTrait2","value":20},{"name":"CreativeTrait3","value":10}],"opening":"Suspicious greeting"}
             `;
@@ -514,6 +526,9 @@
                 
                 window.systemContext = `Target:${charData.name}(${charData.desc}). Mission:${charData.mission}. Weakness:${charData.traits.map(t=>t.name).join(',')}.`;
                 chatHistory.push({ role: 'model', content: charData.opening });
+
+                // Reset traits panel to show by default when game starts
+                document.getElementById('traits-panel').classList.remove('hidden');
 
             } catch(e) {
                 document.getElementById('target-name').innerText = "ERROR";
@@ -536,11 +551,11 @@
             targetState.traits.forEach(t => {
                 const div = document.createElement('div');
                 div.innerHTML = `
-                    <div class="flex justify-between text-[9px] text-cyan-300 mb-1">
-                        <span class="truncate pr-1">${t.name}</span>
-                        <span>${t.value}%</span>
+                    <div class="flex justify-between items-end text-[10px] text-cyan-300 mb-1">
+                        <span class="pr-2 leading-tight flex-1 break-words whitespace-normal">${t.name}</span>
+                        <span class="font-bold flex-shrink-0">${t.value}%</span>
                     </div>
-                    <div class="h-1 bg-gray-800 rounded overflow-hidden">
+                    <div class="h-1.5 bg-gray-800 rounded overflow-hidden">
                         <div class="h-full bg-cyan-500 transition-all" style="width: ${t.value}%"></div>
                     </div>
                 `;
