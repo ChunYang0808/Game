@@ -603,7 +603,13 @@ function addBubble(type,text){
   const div=document.createElement('div');
   if(type.startsWith('sys')){
     div.className='sys'+(type.includes('good')?' good':'')+(type.includes('bad')?' bad':'');
-    div.textContent=String(text);
+    // 系統訊息只允許少量安全格式：<br> 換行、<b> 粗體。
+    // 先完整 escape，再把這兩種標記還原，避免 AI/輸入內容把 HTML 當成程式執行。
+    const safe=escapeHtml(String(text))
+      .replace(/&lt;br\s*\/?&gt;/gi,'<br>')
+      .replace(/&lt;b&gt;/gi,'<b>')
+      .replace(/&lt;\/b&gt;/gi,'</b>');
+    div.innerHTML=safe;
   }else{
     div.className='bubble '+type;
     const label=type==='ai'?'TARGET':'PLAYER';
