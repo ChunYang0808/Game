@@ -418,16 +418,101 @@
                     body: JSON.stringify(body)
                 });
                 const data = await resp.json();
-                if(data.error) throw new Error(data.error.message);
                 
+                if(data.error) {
+                    console.error("Gemini API Error:", data.error);
+                    throw new Error(data.error.message || "API 回傳錯誤");
+                }
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0) {
+                     throw new Error("API 回傳內容為空或格式異常");
+                }
+
                 let text = data.candidates[0].content.parts[0].text;
+                
                 if (forceJson) {
-                    try { return JSON.parse(text); } 
-                    catch (e) { return { error: true, reply: "系統異常", resistance_change: 0, suspicion_change: 0 }; }
+                    try { 
+                        // 更強健的 JSON 提取：嘗試找到 { 和 } 之間的內容
+                        const firstBrace = text.indexOf('{');
+                        const lastBrace = text.lastIndexOf('}');
+                        if (firstBrace !== -1 && lastBrace !== -1) {
+                            text = text.substring(firstBrace, lastBrace + 1);
+                        }
+                        return JSON.parse(text); 
+                    } 
+                    catch (e) { 
+                        console.error("JSON Parse Error:", text, e);
+                        throw new Error("AI 回傳的資料無法解析為 JSON");
+                    }
                 }
                 return text;
             } catch(error) {
+                console.error("Call Gemini Failed:", error);
                 throw error;
+            }
+        }
+
+        async function startGame() {
+            showScreen('screen-game');
+            document.getElementById('chat-history').innerHTML = ''; 
+            
+            // 讀取難度設定並初始化行動點數
+            const diffSelect = document.getElementById('difficulty-select').value;
+            if (diffSelect === 'custom') {
+                actionPoints = Math.max(1, parseInt(document.getElementById('custom-ap').value) || 7);
+            } else {
+                actionPoints = parseInt(diffSelect);
+            }
+            
+            document.getElementById('ap-val').innerText = actionPoints;
+            document.getElementById('ap-val').className = "text-cyan-400 text-xl leading-none";
+
+            // Reset Persona UI
+            document.getElementById('p-trust').innerText = "--";
+            document.getElementById('p-aggro').innerText = "--";
+            document.getElementById('p-anx').innerText = "--";
+            document.getElementById('p-strat').innerText = "等待資料寫入...";
+            
+            // 清空舊狀態
+            document.getElementById('target-name').innerText = "Connecting...";
+            document.getElementById('target-mission-header').innerText = "Loading target data...";
+            document.getElementById('traits-container').innerHTML = '';
+            renderBars();
+
+            addBubble('sys', '正在隨機尋找大腦接口...');
+
+            const r1 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
+            const r2 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
+
+            const setupPrompt = `
+                [TASK]: Generate a target. Language: zh-TW.
+                Keywords: "${r1}", "${r2}". NO "林伯".
+                JSON ONLY: {"name":"...","desc":"...","mission":"What player must convince them to do","traits":[{"name":"Trait1","value":30},{"name":"Trait2","value":20},{"name":"Trait3","value":10}],"opening":"Suspicious greeting"}
+            `;
+
+            try {
+                const charData = await callGemini(setupPrompt, true);
+
+                targetState = { resistance: 100, suspicion: 0, traits: charData.traits };
+
+                document.getElementById('target-name').innerText = charData.name || "不明目標";
+                document.getElementById('target-mission-header').innerText = charData.mission || "未知的任務";
+                renderBars();
+                renderTraits();
+                
+                chatHistory = [];
+                addBubble('sys-highlight', `<b>[強制任務指令]</b><br>${charData.mission}`);
+                addBubble('ai', charData.opening || "......");
+                
+                window.systemContext = `Target:${charData.name}(${charData.desc}). Mission:${charData.mission}. Weakness:${charData.traits.map(t=>t.name).join(',')}.`;
+                chatHistory.push({ role: 'model', content: charData.opening });
+
+            } catch(e) {
+                console.error("Start Game Error caught:", e);
+                // 移除 location.reload()，改為直接在畫面顯示錯誤並允許重新匹配
+                document.getElementById('target-name').innerText = "ERROR";
+                document.getElementById('target-mission-header').innerText = "連線中斷";
+                addBubble('sys', `<b style="color:red;">【系統異常】尋找目標失敗</b><br>原因: ${e.message}<br><br>請點擊右上角「重新匹配」重試。如果持續發生，可能是 API Key 額度用盡或網路不穩。`);
             }
         }
 
