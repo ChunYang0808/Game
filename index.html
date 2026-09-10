@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW"> 
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.4.7 | 混合個性版</title>
+    <title>心智駭客 V1.4.8 | 遺言版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
@@ -298,9 +298,10 @@
         <h1 class="text-6xl font-black text-white mb-2 mt-4 no-shrink">行動失敗</h1>
         <p class="text-xl text-red-200 mb-6 no-shrink">系統已自動切斷連線</p>
         
+        <!-- 失敗原因展示框 (顯示最後一句嗆聲) -->
         <div class="w-full max-w-md border border-red-500 p-4 rounded mb-6 bg-black relative no-shrink">
              <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-red-500">SYSTEM LOCKDOWN</div>
-            <p id="lose-reason" class="text-lg text-red-400 font-bold"></p>
+            <p id="lose-reason" class="text-lg text-red-400 font-bold italic"></p>
         </div>
 
         <div id="lose-rating-card" class="rating-card w-full max-w-md hidden" style="border-color: #ff3333;">
@@ -611,6 +612,7 @@ State: Res:${targetState.resistance}/100, Sus:${targetState.suspicion}/100. Inpu
    - Offend: "hit_weakness":"TraitName", "weakness_result":"fail", Sus +20~30.
 4. WIN CHECK (STRICT): "mission_completed":true ONLY IF user EXPLICITLY pushes for the actual mission goal AND Res is very low/0. If Res is 0 but no explicit request yet, keep "mission_completed":false. Only set true if you verbally agree/surrender to the exact mission request.
 5. PLAYER ANALYSIS: rate player's current trustworthiness, aggressiveness, anxiety (0-100), and short strategy description.
+6. GAME OVER CHECK: If Suspicion will be >= 100 OR Action Points run out (this is turn ${7 - actionPoints}), you MUST generate a final "game_over_reason" where the character verbally exposes/rejects the player (e.g. "I know what you're doing, get out!").
 
 JSON ONLY:
 {"reply":"...","resistance_change":int,"suspicion_change":int,"mission_completed":bool,"hit_weakness":"...","weakness_result":"success/fail/null","trait_updates":[{"name":"...","new_value":int}],"game_over_reason":"...","player_analysis":{"trustworthiness":int,"aggressiveness":int,"anxiety":int,"strategy":"..."}}
@@ -676,9 +678,11 @@ JSON ONLY:
                 chatHistory.push({ role: 'user', content: txt });
                 chatHistory.push({ role: 'model', content: data.reply });
 
+                // --- 檢查失敗條件 ---
                 if (targetState.suspicion >= 100) {
                     setTimeout(() => {
-                        document.getElementById('lose-reason').innerText = data.game_over_reason || "太可疑了，連線已被強制切斷！";
+                        // 確保顯示 AI 的最後一句嗆聲
+                        document.getElementById('lose-reason').innerText = `「${data.game_over_reason || data.reply || "你以為我不知道你想幹嘛嗎？滾！"}」`;
                         showScreen('screen-lose');
                         generateAnalysis(false); 
                     }, 1000);
@@ -690,7 +694,8 @@ JSON ONLY:
                     }, 1000);
                 } else if (actionPoints <= 0) {
                     setTimeout(() => {
-                        document.getElementById('lose-reason').innerText = "行動點數耗盡，系統安全局已鎖定你的 IP 進行反追蹤！";
+                        // 如果是因為 AP 耗盡而失敗，也顯示 AI 的拒絕留言
+                        document.getElementById('lose-reason').innerText = `「${data.game_over_reason || "我沒時間陪你耗了，請你離開！"}」\n\n(行動點數耗盡)`;
                         showScreen('screen-lose');
                         generateAnalysis(false); 
                     }, 1000);
