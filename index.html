@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>心智駭客 V1.4.6 | 純粹混沌版</title>
+    <title>心智駭客 V1.4.7 | 混合個性版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
@@ -500,14 +500,16 @@
             const r1 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
             const r2 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
 
-            // 強制 AI 自己發明 3-5 個具體的奇特軟肋
+            // 強制 AI 生成 3 個客觀個性與 3 個奇特軟肋
             const setupPrompt = `
                 [TASK]: Generate a target. Language: zh-TW.
                 Keywords for Role: "${r1}", "${r2}". NO "林伯".
                 CRITICAL RULES:
-                1. Invent 3 to 5 highly creative, specific, and bizarre psychological weaknesses (traits) for this character. Do NOT use generic traits like "greedy" or "stubborn". Make them unique and funny (e.g. "害怕被已讀不回", "對奇數有強迫症", "無法忍受任何以質數結尾的報價").
-                2. Assign random percentage values (20-80) to them.
-                JSON ONLY: {"name":"...","desc":"...","mission":"What player must convince them to do","traits":[{"name":"CreativeTrait1","value":30},{"name":"CreativeTrait2","value":20},{"name":"CreativeTrait3","value":10}],"opening":"Suspicious greeting"}
+                1. Generate exactly 6 traits for this character.
+                2. The first 3 traits MUST be generic, objective personality characteristics (e.g., "多疑", "懦弱", "貪財", "容易暴怒", "極度自戀").
+                3. The next 3 traits MUST be highly creative, specific, and bizarre psychological weaknesses. Make them unique and funny (e.g., "害怕被已讀不回", "對奇數有強迫症", "看到圓形物體就會感到極度不適").
+                4. Assign random percentage values (20-80) to them.
+                JSON ONLY: {"name":"...","desc":"...","mission":"What player must convince them to do","traits":[{"name":"Generic1","value":30},{"name":"Generic2","value":20},{"name":"Generic3","value":10},{"name":"Bizarre1","value":50},{"name":"Bizarre2","value":60},{"name":"Bizarre3","value":70}],"opening":"Suspicious greeting"}
             `;
 
             try {
