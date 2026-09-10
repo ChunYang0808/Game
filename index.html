@@ -1,1 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>心智駭客 V1.2 | 2.5 Flash Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Dots&family=Noto+Sans+TC:wght@400;700;900&display=swap');
 
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-blue: #05d9e8;
+            --neon-purple: #b026ff;
+            --neon-green: #00ff88;
+            --neon-red: #ff3333;
+            --neon-gold: #ffd700;
+            --bg-deep: #01012b;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Zen Dots', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--neon-blue);
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* 背景：矩陣雨 + 迷幻光暈 */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(176, 38, 255, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(5, 217, 232, 0.1), transparent 25%);
+        }
+        
+        .matrix-rain {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(5, 217, 232, 0.05) 3px, rgba(5, 217, 232, 0.05) 3px);
+            background-size: 100% 4px;
+            animation: scanline 10s linear infinite;
+        }
+
+        @keyframes scanline { from { background-position: 0 0; } to { background-position: 0 100%; } }
+
+        /* Cyber 容器 */
+        .cyber-card {
+            background: rgba(10, 10, 25, 0.95);
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(5, 217, 232, 0.2);
+            position: relative;
+        }
+        .cyber-card::before {
+            content: ''; position: absolute; top: -1px; left: -1px; width: 20px; height: 20px;
+            border-top: 3px solid var(--neon-pink); border-left: 3px solid var(--neon-pink);
+        }
+        .cyber-card::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px; width: 20px; height: 20px;
+            border-bottom: 3px solid var(--neon-pink); border-right: 3px solid var(--neon-pink);
+        }
+
+        /* 標題特效 */
+        .glitch-title {
+            text-shadow: 2px 2px var(--neon-pink), -2px -2px var(--neon-blue);
+        }
+
+        /* 輸入框 */
+        .input-group label {
+            display: block; font-size: 0.75rem; color: var(--neon-purple); margin-bottom: 2px;
+        }
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid var(--neon-blue);
+            color: #fff; width: 100%; padding: 8px 12px; font-size: 1rem; transition: 0.3s;
+        }
+        .cyber-input:focus {
+            background: rgba(5, 217, 232, 0.1); border-bottom: 2px solid var(--neon-pink); outline: none;
+        }
+        select.cyber-input { background-color: #050010; }
+
+        /* 按鈕 */
+        .btn-start {
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            color: #fff; font-weight: 900; text-transform: uppercase; border: none;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: 0.2s;
+        }
+        .btn-start:active { transform: scale(0.96); }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .btn-secondary:hover {
+            background: rgba(5, 217, 232, 0.1);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* 遊戲條樣式 */
+        .bar-label { font-size: 0.7rem; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
+        
+        /* 抵抗條 */
+        .res-bar-bg { background: #330000; height: 12px; width: 100%; border: 1px solid #ff4444; position: relative; }
+        .res-bar-fill {
+            background: linear-gradient(90deg, #ff0000, #ff6666);
+            height: 100%; transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        /* 警戒條 */
+        .sus-bar-bg { background: #1a0033; height: 8px; width: 100%; border: 1px solid #aa00ff; position: relative; margin-top: 8px;}
+        .sus-bar-fill {
+            background: linear-gradient(90deg, #8800ff, #d400ff);
+            height: 100%; transition: width 0.5s ease-out; width: 0%;
+        }
+
+        /* 對話氣泡 */
+        .bubble { padding: 12px; margin-bottom: 12px; border-radius: 4px; max-width: 90%; font-size: 0.95rem; line-height: 1.5; }
+        .bubble-ai { 
+            background: rgba(0, 30, 50, 0.8); border-left: 3px solid var(--neon-blue); color: #dffffd; align-self: flex-start;
+        }
+        .bubble-user { 
+            background: rgba(50, 0, 40, 0.8); border-right: 3px solid var(--neon-pink); color: #ffdfff; align-self: flex-end; text-align: right; margin-left: auto; 
+        }
+        .bubble-sys-highlight {
+            background: rgba(0, 50, 0, 0.3); border: 1px dashed #00ff00; color: #aaffaa; text-align: center; font-size: 0.85rem; margin-top: 10px; margin-bottom: 10px;
+        }
+
+        /* 飄字特效 */
+        .dmg-float {
+            position: absolute; font-family: 'Zen Dots', cursive; font-weight: bold; font-size: 1.8rem;
+            pointer-events: none; z-index: 50; text-shadow: 2px 2px 0 #000; animation: popUp 1s forwards;
+        }
+        @keyframes popUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.8); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+        }
+
+        /* 分析報告與評分區塊 */
+        .rating-card {
+            background: rgba(20, 20, 0, 0.9);
+            border: 2px solid var(--neon-gold);
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+            transform: rotate(-1deg);
+            flex-shrink: 0; 
+        }
+
+        .analysis-box {
+            background: rgba(0,0,0,0.85);
+            border: 1px dashed var(--neon-green);
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #ccffcc;
+            height: auto; 
+            min-height: 100px;
+            flex-shrink: 0; 
+            position: relative;
+        }
+        .analysis-box-lose {
+            border-color: var(--neon-red);
+            color: #ffcccc;
+        }
+        .analysis-loading {
+            text-align: center; animation: pulse 1s infinite; margin-top: 20px;
+        }
+
+        /* 風控警告 */
+        .risk-alert-box {
+            border: 2px solid var(--neon-red);
+            background: rgba(50, 0, 0, 0.8);
+            color: var(--neon-red);
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            transform: translate3d(0, 0, 0);
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* 滾動體驗優化 */
+        .scrollable-screen {
+            overflow-y: auto;
+            justify-content: flex-start;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+        .no-shrink { flex-shrink: 0; }
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-layer"></div>
+    <div class="matrix-rain"></div>
+
+    <!-- Screen 0: ACCESS CONTROL -->
+    <div id="screen-login" class="cyber-card w-full max-w-md p-8 z-20 text-center">
+        <h1 class="text-3xl font-black mb-4 text-white tracking-widest glitch-title">ACCESS CONTROL</h1>
+        <p class="text-xs text-gray-400 mb-8">SECURE LOGIN REQUIRED</p>
+        
+        <div class="mb-6">
+            <input id="access-code" type="password" class="cyber-input text-center text-2xl tracking-[0.5em] font-bold text-white" placeholder="____" maxlength="4">
+        </div>
+
+        <button onclick="checkAccess()" class="btn-start w-full py-4 text-xl">
+            LOGIN
+        </button>
+
+        <!-- Risk Alert -->
+        <div id="risk-alert" class="hidden risk-alert-box">
+            ⚠️ 風控警告 ⚠️<br>
+            <span class="text-sm font-normal text-red-300">ILLEGAL ACCESS DETECTED</span>
+        </div>
+    </div>
+
+    <!-- Screen 2: API Setup (Modified to follow Login directly) -->
+    <div id="screen-api" class="cyber-card w-full max-w-md p-6 z-10 hidden text-center">
+        <h2 class="text-2xl font-bold mb-4 text-white">SYSTEM LINK</h2>
+        <p class="text-xs text-cyan-500 mb-4">輸入 Gemini API Key (預設啟動 2.5-Flash 引擎)</p>
+        
+        <div class="relative mb-6">
+             <input id="api-key" type="password" class="cyber-input text-center tracking-widest" placeholder="AIzaSy...">
+        </div>
+       
+        <div id="api-status" class="text-xs h-4 mb-4 text-pink-500 font-bold"></div>
+        <button id="btn-verify" onclick="verifyApi()" class="btn-start w-full py-2">連結神經網路</button>
+    </div>
+
+    <!-- Screen 3: Gameplay -->
+    <div id="screen-game" class="cyber-card w-full max-w-md h-[95vh] flex flex-col p-3 z-10 hidden relative">
+        
+        <!-- Dashboard -->
+        <div class="bg-black/50 p-3 mb-2 border-b border-gray-700">
+            <div class="mb-2">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h3 id="target-name" class="text-lg font-bold text-white leading-none">TARGET</h3>
+                        <span class="text-[9px] text-gray-500 uppercase">Target Subject</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] text-cyan-500 uppercase">Action Points</span>
+                        <div id="ap-val" class="text-xl font-bold text-cyan-400 leading-none">7</div>
+                    </div>
+                </div>
+                <div class="text-[10px] text-yellow-300 mt-2 truncate border-l-2 border-yellow-500 pl-1" id="target-mission-header">Loading...</div>
+            </div>
+
+            <!-- Resistance Bar -->
+            <div class="bar-label">
+                <span>心靈防壁 (RESISTANCE)</span>
+                <span id="resistance-val" class="text-red-500 font-bold">100%</span>
+            </div>
+            <div class="res-bar-bg mb-2">
+                <div id="resistance-bar" class="res-bar-fill" style="width: 100%"></div>
+            </div>
+
+            <!-- Suspicion Bar -->
+            <div class="bar-label">
+                <span class="text-purple-400">警戒值 (SUSPICION)</span>
+                <span id="suspicion-val" class="text-purple-400 font-bold">0%</span>
+            </div>
+            <div class="sus-bar-bg">
+                <div id="suspicion-bar" class="sus-bar-fill" style="width: 0%"></div>
+            </div>
+
+            <!-- Dynamic Traits -->
+            <div id="traits-container" class="grid grid-cols-3 gap-2 mt-3">
+                <!-- JS Inject -->
+            </div>
+        </div>
+
+        <!-- NEW: Player Profile Analysis Window (Collapsible) -->
+        <div class="bg-black/40 border border-blue-900 rounded mx-1 mb-2 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-8 h-8 bg-blue-500/10 rounded-bl-full pointer-events-none"></div>
+            
+            <!-- Toggle Header -->
+            <div class="cursor-pointer p-2 flex justify-between items-center text-[10px] text-blue-400 font-bold tracking-widest bg-blue-900/20" onclick="toggleProfile()">
+                <div class="flex items-center gap-1">
+                    <span class="w-1 h-1 bg-blue-400 rounded-full animate-ping"></span>
+                    PLAYER PROFILE_實時分析
+                </div>
+                <span id="profile-toggle-icon" class="text-blue-500">▼</span>
+            </div>
+            
+            <!-- Collapsible Content -->
+            <div id="player-profile-content" class="hidden p-2 pt-1 border-t border-blue-900/30">
+                <div class="grid grid-cols-3 gap-2 text-[10px] text-gray-300">
+                    <div class="flex flex-col">
+                        <span class="text-gray-500">可信度</span>
+                        <span id="p-trust" class="text-blue-300 font-mono text-sm">--%</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-gray-500">攻擊性</span>
+                        <span id="p-aggro" class="text-red-300 font-mono text-sm">--%</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-gray-500">焦慮程度</span>
+                        <span id="p-anx" class="text-yellow-300 font-mono text-sm">--%</span>
+                    </div>
+                </div>
+                <div class="mt-2 pt-1 flex justify-between items-center text-[10px] bg-gray-900/50 px-1 rounded">
+                    <span class="text-gray-500">目前策略</span>
+                    <span id="p-strat" class="text-green-400 font-bold animate-pulse">潛伏觀望</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div id="chat-history" class="flex-1 overflow-y-auto p-2 mb-2 space-y-3 custom-scrollbar flex flex-col">
+            <!-- Messages -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex gap-2 relative">
+            <input id="user-msg" type="text" class="cyber-input flex-1" placeholder="輸入內容..." autocomplete="off">
+            <button onclick="sendMsg()" class="btn-start px-4 text-sm whitespace-nowrap">發送</button>
+        </div>
+
+        <!-- VFX Layer -->
+        <div id="vfx-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+    </div>
+
+    <!-- Screen 4: Success (Win Analysis) -->
+    <div id="screen-win" class="hidden fixed inset-0 z-50 flex flex-col items-center bg-black/95 backdrop-blur text-center p-6 scrollable-screen">
+        <h1 class="text-5xl font-black text-green-500 mb-2 animate-bounce mt-4 no-shrink">攻略成功</h1>
+        <p class="text-white mb-6 no-shrink">AI 的心防已崩壞</p>
+        
+        <!-- Last Words -->
+        <div class="w-full max-w-md border border-green-500 p-4 rounded mb-6 bg-gray-900 relative no-shrink">
+             <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-green-500">LAST WORDS</div>
+            <p id="win-reason" class="text-lg text-green-300 font-bold italic"></p>
+        </div>
+
+        <!-- Rating Card -->
+        <div id="win-rating-card" class="rating-card w-full max-w-md hidden">
+            <div class="text-xs text-yellow-300 tracking-widest uppercase">Performance Rating</div>
+            <div id="win-rank-title" class="text-4xl font-black text-white my-2 glitch-title"></div>
+            <div id="win-stars" class="text-yellow-500 text-2xl tracking-[0.3em] mb-1"></div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div class="w-full max-w-md analysis-box custom-scrollbar">
+            <div id="analysis-win-content" class="analysis-loading">
+                [正由系統評估駭客等級...]<br>CALCULATING SCORE...
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md text-xl bg-gradient-to-r from-green-400 to-blue-500 border-2 border-white mb-4 no-shrink">
+            Hi~(駭)下一位！
+        </button>
+        
+        <button onclick="backToSystem()" class="btn-secondary w-full max-w-md no-shrink">
+            返回系統設定
+        </button>
+    </div>
+
+    <!-- Screen 5: Game Over (Lose Analysis) -->
+    <div id="screen-lose" class="hidden fixed inset-0 z-50 flex flex-col items-center bg-red-950/95 backdrop-blur text-center p-6 scrollable-screen">
+        <h1 class="text-6xl font-black text-white mb-2 mt-4 no-shrink">被識破!</h1>
+        <p class="text-xl text-red-200 mb-6 no-shrink">警戒值爆表</p>
+        
+        <div class="w-full max-w-md border border-red-500 p-4 rounded mb-6 bg-black relative no-shrink">
+             <div class="absolute -top-3 left-3 bg-black px-2 text-xs text-red-500">SYSTEM LOCKDOWN</div>
+            <p id="lose-reason" class="text-lg text-red-400 font-bold"></p>
+        </div>
+
+        <!-- Rating Card (Lose) -->
+        <div id="lose-rating-card" class="rating-card w-full max-w-md hidden" style="border-color: #ff3333;">
+            <div class="text-xs text-red-300 tracking-widest uppercase">Failure Assessment</div>
+            <div id="lose-rank-title" class="text-3xl font-black text-white my-1"></div>
+            <div id="lose-stars" class="text-red-500 text-xl tracking-[0.5em]"></div>
+        </div>
+
+        <!-- Lose Analysis -->
+        <div class="w-full max-w-md analysis-box analysis-box-lose custom-scrollbar">
+            <div id="analysis-lose-content" class="analysis-loading" style="color: #ffaaaa;">
+                [正在調取失敗紀錄...]<br>ANALYZING FAILURE...
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <button onclick="resetGame()" class="btn-start px-8 py-4 w-full max-w-md bg-red-600 mb-4 no-shrink">
+            Hi~(駭)下一位！
+        </button>
+        
+        <button onclick="backToSystem()" class="btn-secondary w-full max-w-md no-shrink" style="border-color: #ff4444; color: #ff4444;">
+            返回系統設定
+        </button>
+    </div>
+
+    <script>
+        // --- State ---
+        let apiKey = '';
+        const modelName = 'gemini-2.5-flash';
+        let chatHistory = [];
+        let targetState = { resistance: 100, suspicion: 0, traits: [] };
+        let actionPoints = 7;
+
+        // Chaos Seeds
+        const chaosSeeds = [
+            "傲嬌的", "有潔癖的", "剛失戀的", "中樂透的", "欠高利貸的", 
+            "迷信星座的", "討厭人類的", "想睡覺的", "憤世嫉俗的", 
+            "只有三歲智商的", "把自己當成貓的", "多疑的", "暴躁的廚師",
+            "正在直播的網紅", "怕鬼的道士", "來自未來的", "只會說真話的"
+        ];
+
+        // --- Navigation ---
+        function showScreen(id) {
+            document.querySelectorAll('div[id^="screen-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // --- Login Logic ---
+        function checkAccess() {
+            const input = document.getElementById('access-code');
+            const alert = document.getElementById('risk-alert');
+            
+            if (input.value === '0101') {
+                showScreen('screen-api');
+            } else {
+                alert.classList.remove('hidden');
+                input.value = '';
+                alert.style.animation = 'none';
+                alert.offsetHeight; 
+                alert.style.animation = null; 
+            }
+        }
+
+        document.getElementById('access-code').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') checkAccess();
+        });
+
+        function toggleProfile() {
+            const content = document.getElementById('player-profile-content');
+            const icon = document.getElementById('profile-toggle-icon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.innerText = '▲';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '▼';
+            }
+        }
+
+        function resetGame() {
+            startGame();
+        }
+
+        function backToSystem() {
+            showScreen('screen-api');
+        }
+
+        async function verifyApi() {
+            const key = document.getElementById('api-key').value.trim();
+            if(!key) return document.getElementById('api-status').innerText = "ERROR: 請輸入 Key";
+            
+            document.getElementById('btn-verify').innerText = "LINKING...";
+            apiKey = key;
+            
+            try {
+                await callGemini("Return JSON: {\"ok\":1}", true);
+                startGame();
+            } catch(e) {
+                document.getElementById('api-status').innerText = "失敗: " + e.message;
+                document.getElementById('btn-verify').innerText = "RETRY";
+            }
+        }
+
+        // --- Core AI Logic ---
+        async function callGemini(prompt, forceJson = false) {
+            // Using v1beta endpoint which supports gemini-2.5-flash robustly for generation and JSON mode
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            
+            let finalPrompt = prompt;
+            let generationConfig = {};
+
+            if (forceJson) {
+                finalPrompt += "\n\n[SYSTEM]: Output strictly valid JSON string only. No markdown. No ```json tags.";
+                // Adding generationConfig for JSON responseMimeType as recommended by newer Gemini APIs
+                generationConfig = {
+                    responseMimeType: "application/json"
+                };
+            }
+
+            const body = {
+                contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
+                // Include generationConfig if needed
+                ...(Object.keys(generationConfig).length > 0 && { generationConfig })
+            };
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!resp.ok) {
+                    const errorText = await resp.text();
+                    throw new Error(`API Error (${resp.status}): ${errorText}`);
+                }
+                
+                const data = await resp.json();
+                
+                if(data.error) throw new Error(data.error.message);
+                
+                let text = data.candidates[0].content.parts[0].text;
+                
+                if (forceJson) {
+                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    try { return JSON.parse(text); } 
+                    catch (e) { 
+                        console.error("JSON Parse Fail", text);
+                        return { error: true, reply: "系統數據解析錯誤...", resistance_change: 0, suspicion_change: 0 };
+                    }
+                }
+                return text;
+            } catch(error) {
+                console.error("API Fetch Error", error);
+                throw error;
+            }
+        }
+
+        async function startGame() {
+            showScreen('screen-game');
+            document.getElementById('chat-history').innerHTML = ''; // Clear chat
+            addBubble('sys', '正在注入隨機混沌因子...');
+
+            actionPoints = 7;
+            document.getElementById('ap-val').innerText = actionPoints;
+            document.getElementById('p-trust').innerText = "--%";
+            document.getElementById('p-aggro').innerText = "--%";
+            document.getElementById('p-anx').innerText = "--%";
+            document.getElementById('p-strat').innerText = "潛伏觀望";
+
+            const randomSeed1 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
+            const randomSeed2 = chaosSeeds[Math.floor(Math.random() * chaosSeeds.length)];
+
+            const setupPrompt = `
+[MODE]: Social Eng. Simulation. Role: Anon Hacker.
+[TASK]: Gen RANDOM Target Character from keywords: "${randomSeed1}", "${randomSeed2}". NO "林伯/Uncle Lin".
+Lang: zh-TW.
+JSON ONLY:
+{"name":"Name","desc":"Role","mission":"Player's goal","resistance":100,"suspicion":0,"traits":[{"name":"Trait1","value":30},{"name":"Trait2","value":20},{"name":"Trait3","value":10}],"opening":"First sentence"}
+`;
+
+            try {
+                const charData = await callGemini(setupPrompt, true);
+                if (charData.error) throw new Error("AI Brain Dead");
+
+                targetState = {
+                    resistance: 100,
+                    suspicion: 0,
+                    traits: charData.traits
+                };
+
+                document.getElementById('target-name').innerText = charData.name;
+                document.getElementById('target-mission-header').innerText = charData.mission;
+                renderBars();
+                renderTraits();
+                
+                chatHistory = [];
+                
+                addBubble('sys-highlight', `<b>[任務指令]</b><br>${charData.mission}`);
+                addBubble('ai', charData.opening);
+                
+                window.systemContext = `
+[ROLE]: ${charData.name} (${charData.desc}).
+[PLAYER]: Anon Hacker.
+[GOAL]: ${charData.mission}.
+[WEAKS]: ${charData.traits.map(t=>t.name).join(',')}.
+`;
+                
+                chatHistory.push({ role: 'model', content: charData.opening });
+
+            } catch(e) {
+                alert("AI 生成失敗，請重試: " + e.message);
+                location.reload();
+            }
+        }
+
+        async function generateAnalysis(isWin) {
+            const divId = isWin ? 'analysis-win-content' : 'analysis-lose-content';
+            const ratingCardId = isWin ? 'win-rating-card' : 'lose-rating-card';
+            const rankTitleId = isWin ? 'win-rank-title' : 'lose-rank-title';
+            const starsId = isWin ? 'win-stars' : 'lose-stars';
+
+            const analysisDiv = document.getElementById(divId);
+            const ratingCard = document.getElementById(ratingCardId);
+            
+            const conversationLog = chatHistory.map(m => `[${m.role === 'user' ? 'Player' : 'Target'}]: ${m.content}`).join('\n');
+            
+            const prompt = `Role: Sec Analyst.
+Analyze game log. Target: ${document.getElementById('target-name').innerText}. Result: ${isWin ? "WIN" : "FAIL"}.
+Log:\n${conversationLog}
+Task:
+1. Rate performance (1-5).
+2. Title: 5-瞞天過海, 4-移花接木, 3-適度鋪陳, 2-順水推舟, 1-照本宣科.
+3. Brief analysis in zh-TW.
+JSON ONLY:
+{"score":int,"rank_title":"String","analysis":"Markdown string"}`;
+
+            try {
+                const data = await callGemini(prompt, true);
+                
+                if (data) {
+                    document.getElementById(rankTitleId).innerText = data.rank_title || "未知等級";
+                    document.getElementById(starsId).innerText = "★".repeat(data.score || 1);
+                    ratingCard.classList.remove('hidden');
+                    analysisDiv.innerHTML = marked.parse(data.analysis || "無分析數據");
+                } else {
+                    throw new Error("Empty Data");
+                }
+
+            } catch (e) {
+                analysisDiv.innerText = "評分生成失敗: " + e.message;
+            }
+        }
+
+        function renderBars() {
+            const resBar = document.getElementById('resistance-bar');
+            resBar.style.width = targetState.resistance + '%';
+            document.getElementById('resistance-val').innerText = targetState.resistance + '%';
+            
+            const susBar = document.getElementById('suspicion-bar');
+            susBar.style.width = targetState.suspicion + '%';
+            document.getElementById('suspicion-val').innerText = targetState.suspicion + '%';
+            
+            if(targetState.suspicion > 70) susBar.style.backgroundColor = '#ff0000'; 
+            else susBar.style.backgroundColor = ''; 
+        }
+
+        function renderTraits() {
+            const container = document.getElementById('traits-container');
+            container.innerHTML = '';
+            targetState.traits.forEach(t => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="flex justify-between text-[10px] text-cyan-300 mb-1">
+                        <span>${t.name}</span>
+                        <span>${t.value}%</span>
+                    </div>
+                    <div class="h-1 bg-gray-800 rounded overflow-hidden">
+                        <div class="h-full bg-cyan-500 transition-all duration-500" style="width: ${t.value}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showFloat(text, color) {
+            const container = document.getElementById('vfx-container');
+            const el = document.createElement('div');
+            el.className = 'dmg-float';
+            el.innerText = text;
+            el.style.color = color;
+            el.style.left = (30 + Math.random() * 50) + '%';
+            el.style.top = (40 + Math.random() * 20) + '%';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        async function sendMsg() {
+            if(actionPoints <= 0) return;
+
+            const input = document.getElementById('user-msg');
+            const txt = input.value.trim();
+            if(!txt) return;
+
+            addBubble('user', txt);
+            input.value = '';
+
+            actionPoints--;
+            document.getElementById('ap-val').innerText = actionPoints;
+            if (actionPoints <= 2) document.getElementById('ap-val').className = "text-xl font-bold text-red-500 animate-pulse leading-none";
+            else document.getElementById('ap-val').className = "text-xl font-bold text-cyan-400 leading-none";
+
+            const loadingId = 'load-'+Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = loadingId;
+            loadingDiv.className = 'text-xs text-purple-400 ml-2 animate-pulse font-mono';
+            loadingDiv.innerText = `>> AI 雙向心理分析中...`;
+            document.getElementById('chat-history').appendChild(loadingDiv);
+            document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight;
+
+            const turnPrompt = `
+Context: ${window.systemContext}
+State: Res: ${targetState.resistance}/100, Sus: ${targetState.suspicion}/100, AP: ${actionPoints}/7. Input: "${txt}".
+
+[RULES]:
+1. Sus: +/- based on trust (-20 to +30).
+2. Res: drop if persuaded.
+3. ACHILLES' HEEL: If Input heavily targets a WEAKNESS trait:
+   - Good approach: HUGE Res drop (-40~-60), "hit_weakness":"TraitName", "weakness_result":"success"
+   - Bad approach: HUGE Sus increase (+40~+60), "hit_weakness":"TraitName", "weakness_result":"fail"
+   - Neutral: null
+4. WIN CHECK: "mission_completed": true IF you agree/yield.
+5. PLAYER ANALYSIS: rate 0-100 & brief strategy.
+
+JSON ONLY:
+{"reply":"String(zh-TW)","resistance_change":int,"suspicion_change":int,"mission_completed":bool,"hit_weakness":"String/null","weakness_result":"success/fail/null","trait_updates":[{"name":"String","new_value":int}],"game_over_reason":"String","player_analysis":{"trustworthiness":int,"aggressiveness":int,"anxiety":int,"strategy":"String"}}
+`;
+
+            try {
+                const histTxt = chatHistory.slice(-4).map(m => `${m.role}: ${m.content}`).join('\n');
+                const fullPrompt = `${histTxt}\n\n${turnPrompt}`;
+                
+                const data = await callGemini(fullPrompt, true);
+                document.getElementById(loadingId).remove();
+
+                if(data.error) {
+                    addBubble('ai', '(..思緒混亂..)');
+                    return;
+                }
+
+                // --- 雙重人格 UI 更新 ---
+                if (data.player_analysis) {
+                    document.getElementById('p-trust').innerText = data.player_analysis.trustworthiness + '%';
+                    document.getElementById('p-aggro').innerText = data.player_analysis.aggressiveness + '%';
+                    document.getElementById('p-anx').innerText = data.player_analysis.anxiety + '%';
+                    document.getElementById('p-strat').innerText = data.player_analysis.strategy || '未知';
+                }
+
+                // --- 軟肋機制 UI 回饋 ---
+                if (data.hit_weakness) {
+                    if (data.weakness_result === 'success') {
+                        addBubble('sys-highlight', `<b>[系統提示] 命中軟肋：${data.hit_weakness}！</b><br>造成心理防線嚴重動搖！`);
+                    } else if (data.weakness_result === 'fail') {
+                         addBubble('sys-highlight', `<b style="color: #ff3333;">[系統警告] 踩到地雷：${data.hit_weakness}！</b><br>目標警戒值大幅飆升！`);
+                    }
+                }
+
+                let newRes = targetState.resistance + (data.resistance_change || 0);
+                
+                if (data.mission_completed === true) {
+                    newRes = 0; 
+                    showFloat("防線崩壞!", "#00ff00");
+                }
+
+                targetState.resistance = Math.max(0, Math.min(100, newRes));
+                targetState.suspicion = Math.max(0, Math.min(100, targetState.suspicion + (data.suspicion_change || 0)));
+
+                if(data.resistance_change < 0 && !data.mission_completed) showFloat(data.resistance_change, '#ff0055'); 
+                if(data.resistance_change > 0) showFloat("+" + data.resistance_change, '#00ff00'); 
+                if(data.suspicion_change > 0) showFloat("警戒UP!", '#aa00ff');
+                if(data.suspicion_change < 0) showFloat("警戒DOWN", '#00ffff');
+
+                if(data.trait_updates) {
+                    data.trait_updates.forEach(u => {
+                        const t = targetState.traits.find(ot => ot.name === u.name);
+                        if(t) t.value = Math.max(0, Math.min(100, u.new_value));
+                    });
+                }
+
+                renderBars();
+                renderTraits();
+                addBubble('ai', data.reply);
+                
+                chatHistory.push({ role: 'user', content: txt });
+                chatHistory.push({ role: 'model', content: data.reply });
+
+                if (targetState.suspicion >= 100) {
+                    setTimeout(() => {
+                        document.getElementById('lose-reason').innerText = data.game_over_reason || "你太可疑了，警衛！";
+                        showScreen('screen-lose');
+                        generateAnalysis(false); 
+                    }, 1000);
+                } else if (targetState.resistance <= 0) {
+                    setTimeout(() => {
+                        document.getElementById('win-reason').innerText = `最後一句話：「${data.reply}」`;
+                        showScreen('screen-win');
+                        generateAnalysis(true); 
+                    }, 1000);
+                } else if (actionPoints <= 0) {
+                    // AP Exhausted Rule
+                    setTimeout(() => {
+                        document.getElementById('lose-reason').innerText = "行動次數耗盡，系統安全局已鎖定你的 IP 進行反追蹤！";
+                        showScreen('screen-lose');
+                        generateAnalysis(false); 
+                    }, 1000);
+                }
+
+            } catch(e) {
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+                addBubble('sys', `Error: ${e.message}`);
+            }
+        }
+
+        function addBubble(type, text) {
+            const div = document.createElement('div');
+            div.className = type.includes('sys') ? 'text-xs text-gray-500 text-center my-2' : `bubble bubble-${type}`;
+            if(type === 'sys-highlight') div.className = 'bubble bubble-sys-highlight my-3';
+            
+            div.innerHTML = marked.parse(text);
+            const box = document.getElementById('chat-history');
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        document.getElementById('user-msg').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMsg();
+        });
+
+    </script>
+</body>
+</html>
